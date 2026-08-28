@@ -19,6 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -186,6 +188,16 @@ fun AboutScreen(navController: NavController?) {
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     
+                    // Download DarkNama from GitHub Releases
+                    LinkItem(
+                        icon = Icons.Default.Download,
+                        trailingIcon = Icons.Default.Code,
+                        text = "Download DarkNama",
+                        url = "https://github.com/DaknamaTv/DarkNamaApp/releases"
+                    )
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
                     // Telegram Channel Link
                     LinkItem(
                         icon = Icons.Default.Send,
@@ -222,7 +234,8 @@ fun LinkItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String,
     url: String,
-    isEmail: Boolean = false
+    isEmail: Boolean = false,
+    trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null
 ) {
     val context = LocalContext.current
     
@@ -264,12 +277,21 @@ fun LinkItem(
             )
         }
         
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Open link",
-            modifier = Modifier
-                .size(24.dp)
-                .graphicsLayer(rotationZ = 180f)
-        )
+        if (trailingIcon != null) {
+            Icon(
+                imageVector = trailingIcon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Open link",
+                modifier = Modifier
+                    .size(24.dp)
+                    .graphicsLayer(rotationZ = 180f)
+            )
+        }
     }
 }

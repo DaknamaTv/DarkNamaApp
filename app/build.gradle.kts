@@ -74,6 +74,17 @@ android {
         }
     }
     
+    // Name the single release APK "app-universal-release.apk" so the
+    // existing CI release workflow keeps working with one APK output
+    applicationVariants.all {
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            if (buildType.name == "release") {
+                output.outputFileName = "app-universal-release.apk"
+            }
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
