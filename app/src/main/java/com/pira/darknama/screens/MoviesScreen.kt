@@ -65,6 +65,7 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.pira.darknama.components.GenreFilterSection
+import com.pira.darknama.components.NetworkLogoButton
 import com.pira.darknama.data.model.Genre
 import com.pira.darknama.data.model.Movie
 import com.pira.darknama.ui.movies.MoviesViewModel
@@ -91,6 +92,24 @@ fun MoviesScreen(
     }
     
     Column(modifier = Modifier.fillMaxSize()) {
+        // Top header with network logo (opens website popup)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "DarkNama",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            NetworkLogoButton()
+        }
+        
         // Genre filter section
         GenreFilterSection(
             genres = genres,
