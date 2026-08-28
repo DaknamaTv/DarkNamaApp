@@ -64,6 +64,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.dark.darknama.components.GenreFilterSection
+import com.dark.darknama.components.SettingsIconButton
 import com.dark.darknama.data.model.Genre
 import com.dark.darknama.data.model.Series
 import com.dark.darknama.ui.series.SeriesViewModel
@@ -90,6 +91,23 @@ fun SeriesScreen(
     }
     
     Column(modifier = Modifier.fillMaxSize()) {
+        // Top header with title and settings gear
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "DarkNama",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            SettingsIconButton(navController = navController)
+        }
+        
         // Genre filter section
         GenreFilterSection(
             genres = genres,

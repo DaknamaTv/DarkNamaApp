@@ -74,6 +74,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.dark.darknama.R
+import com.dark.darknama.components.SettingsIconButton
 import com.dark.darknama.data.model.FavoriteGroup
 import com.dark.darknama.data.model.FavoriteItem
 import com.dark.darknama.navigation.AppScreens
@@ -539,6 +540,9 @@ fun FavoritesScreen(navController: NavController) {
                     )
                     }
                 }
+                
+                // Settings gear at the top — opens the Settings screen
+                SettingsIconButton(navController = navController)
             }
         }
         

@@ -9,4 +9,5 @@
     <string name="about">About</string>
     <string name="movie_details">Movie Details</string>
     <string name="series_details">Series Details</string>
+    <string name="live_tv">Live TV</string>
 </resources>

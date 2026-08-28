@@ -135,11 +135,26 @@ class VideoPlayerActivity : ComponentActivity() {
         const val EXTRA_SERIES_ID = "series_id"
         const val EXTRA_SEASON_ID = "season_id"
         const val EXTRA_EPISODE_ID = "episode_id"
+        const val EXTRA_USER_AGENT = "user_agent"
+        const val EXTRA_REFERER = "referer"
         const val REQUEST_WRITE_SETTINGS = 1001
         
         fun start(context: Context, videoUrl: String) {
             val intent = Intent(context, VideoPlayerActivity::class.java).apply {
                 putExtra(EXTRA_VIDEO_URL, videoUrl)
+            }
+            context.startActivity(intent)
+        }
+        
+        /**
+         * Starts the player for a live TV stream, optionally with the custom
+         * HTTP User-Agent / Referer headers required by some IPTV streams.
+         */
+        fun startLiveTv(context: Context, videoUrl: String, userAgent: String? = null, referer: String? = null) {
+            val intent = Intent(context, VideoPlayerActivity::class.java).apply {
+                putExtra(EXTRA_VIDEO_URL, videoUrl)
+                if (!userAgent.isNullOrBlank()) putExtra(EXTRA_USER_AGENT, userAgent)
+                if (!referer.isNullOrBlank()) putExtra(EXTRA_REFERER, referer)
             }
             context.startActivity(intent)
         }
@@ -160,6 +175,8 @@ class VideoPlayerActivity : ComponentActivity() {
     private var seriesId: Int? = null
     private var seasonId: Int? = null
     private var episodeId: Int? = null
+    private var streamUserAgent: String? = null
+    private var streamReferer: String? = null
     private var playerInitialized = false
     private var isActivityResumed = false
     private var hasMarkedAsWatched = false
@@ -180,6 +197,8 @@ class VideoPlayerActivity : ComponentActivity() {
         seriesId = intent.getIntExtra(EXTRA_SERIES_ID, -1).takeIf { it != -1 }
         seasonId = intent.getIntExtra(EXTRA_SEASON_ID, -1).takeIf { it != -1 }
         episodeId = intent.getIntExtra(EXTRA_EPISODE_ID, -1).takeIf { it != -1 }
+        streamUserAgent = intent.getStringExtra(EXTRA_USER_AGENT)
+        streamReferer = intent.getStringExtra(EXTRA_REFERER)
         
         if (videoUrl != null) {
             setContent {
@@ -188,6 +207,8 @@ class VideoPlayerActivity : ComponentActivity() {
                     seriesId = seriesId,
                     seasonId = seasonId,
                     episodeId = episodeId,
+                    userAgent = streamUserAgent,
+                    referer = streamReferer,
                     onBack = this::finish
                 ) { player ->
                     exoPlayer = player
@@ -336,6 +357,8 @@ fun VideoPlayerScreen(
     seriesId: Int?,
     seasonId: Int?,
     episodeId: Int?,
+    userAgent: String? = null,
+    referer: String? = null,
     onBack: () -> Unit,
     onPlayerReady: (ExoPlayer) -> Unit
 ) {
@@ -417,8 +440,24 @@ fun VideoPlayerScreen(
             val selector = DefaultTrackSelector(context)
             trackSelector = selector
             
+            // Build a media source factory with custom HTTP headers when needed
+            // (many IPTV live streams require a specific User-Agent and/or Referer)
+            val httpDataSourceFactory = androidx.media3.datasource.DefaultHttpDataSource.Factory()
+                .setAllowCrossProtocolRedirects(true)
+                .setConnectTimeoutMs(30000)
+                .setReadTimeoutMs(30000)
+            if (!userAgent.isNullOrBlank()) {
+                httpDataSourceFactory.setUserAgent(userAgent)
+            }
+            if (!referer.isNullOrBlank()) {
+                httpDataSourceFactory.setDefaultRequestProperties(mapOf("Referer" to referer))
+            }
+            val dataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
+            val mediaSourceFactory = androidx.media3.exoplayer.source.DefaultMediaSourceFactory(dataSourceFactory)
+            
             ExoPlayer.Builder(context)
                 .setTrackSelector(selector)
+                .setMediaSourceFactory(mediaSourceFactory)
                 .build().apply {
                     try {
                         setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))
