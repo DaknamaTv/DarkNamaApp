@@ -33,7 +33,8 @@ else
     exit 1
 fi
 
-STORED_CHECKSUM=$(cat gradle-wrapper.jar.sha256 | tr -d ' \t\n')
+# Extract only the hash (first field) - the file may contain "hash  filename" format from sha256sum
+STORED_CHECKSUM=$(awk '{print $1}' gradle-wrapper.jar.sha256 | tr -d ' \t\n')
 
 if [ "$COMPUTED_CHECKSUM" = "$STORED_CHECKSUM" ]; then
     echo "✓ Gradle wrapper checksum verification PASSED"
