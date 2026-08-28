@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.pira.ccloud"
+    namespace = "com.pira.darknama"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.pira.ccloud"
+        applicationId = "com.pira.darknama"
         // Supported Android versions: Android 8.0 (API 24) and higher
         // Android 7.0 (API 23) and earlier are not supported
         minSdk = 24

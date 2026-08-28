@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CCloud"
+rootProject.name = "DarkNama"
 include(":app")

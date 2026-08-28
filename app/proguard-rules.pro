@@ -25,4 +25,4 @@
 -dontwarn androidx.media3.**
 
 # Kotlin serialization
--keep class com.pira.ccloud.data.model.** { *; }
+-keep class com.pira.darknama.data.model.** { *; }
