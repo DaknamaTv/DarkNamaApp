@@ -86,7 +86,7 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p release
-          cp app/build/outputs/apk/release/app-universal-release.apk release/CCloud-universal.apk
+          cp app/build/outputs/apk/release/app-universal-release.apk release/DarkNama-universal.apk
 
       - name: Get tag name
         id: get_tag
@@ -108,9 +108,9 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            release/CCloud-universal.apk
+            release/DarkNama-universal.apk
           body: |
-            ## CCloud Release ${{ env.TAG_NAME }}
+            ## DarkNama Release ${{ env.TAG_NAME }}
             
             ### What's New
             - Modernized UI with enhanced user experience
@@ -118,10 +118,10 @@ jobs:
             - New features and bug fixes
             
             ### Download Options
-            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/CCloud-universal.apk) - Compatible with all devices
+            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/DarkNama-universal.apk) - Compatible with all devices
 
             ### Installation
             1. Download the appropriate APK file for your device
             2. Enable "Install from unknown sources" in your device settings
             3. Open and install the APK
-            4. Launch CCloud and enjoy your movies!
+            4. Launch DarkNama and enjoy your movies!
