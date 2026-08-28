@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,7 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -112,10 +115,72 @@ fun AboutScreen(navController: NavController?) {
             
             // Developer Info
             Text(
-                text = "Developed by ÐΛɌ₭ᑎΞ𐒡𐒡",
+                text = "ÐΛɌ₭ᑎΞ𐒡𐒡",
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // DarkNama Website Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // DarkNama Banner Image - opens website when clicked
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data("https://raw.githubusercontent.com/DaknamaTv/DarkNama/main/darknama.jpg")
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "DarkNama Website",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://darknama.pages.dev/"))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    // Handle error if needed
+                                }
+                            },
+                        contentScale = ContentScale.FillWidth
+                    )
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Website Link Text
+                    Text(
+                        text = "وبسایت DarkNama",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .clickable {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://darknama.pages.dev/"))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    // Handle error if needed
+                                }
+                            }
+                            .padding(4.dp)
+                    )
+                    
+                    Text(
+                        text = "darknama.pages.dev",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
             
             Spacer(modifier = Modifier.height(24.dp))
             
