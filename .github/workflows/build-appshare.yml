@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Release DarkNama
 
 on:
   push:
@@ -10,6 +10,9 @@ on:
         description: 'Tag to create release for (e.g., v1.0.0)'
         required: true
         default: 'v1.0.0'
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -41,52 +44,46 @@ jobs:
         continue-on-error: true
         timeout-minutes: 5
 
-      - name: Retry Gradle Wrapper Validation (if needed)
-        run: |
-          echo "Checking if Gradle wrapper validation is needed..."
-          # If the previous step failed, try a manual validation approach
-          if [ ! -f "gradle/wrapper/gradle-wrapper.jar.sha256" ]; then
-            echo "Gradle wrapper checksum missing, generating new one..."
-            ./scripts/fix-gradle-wrapper.sh
-          else
-            echo "Gradle wrapper checksum already exists, continuing..."
-          fi
-        continue-on-error: true
-
-      - name: Check Gradle Wrapper Validation Result
-        run: |
-          if [ ! -f "gradle/wrapper/gradle-wrapper.jar.sha256" ]; then
-            echo "Gradle wrapper checksum missing, generating new one..."
-            cd gradle/wrapper
-            sha256sum gradle-wrapper.jar > gradle-wrapper.jar.sha256
-          fi
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
 
       - name: Decode Keystore
+        env:
+          KEY_STORE: ${{ secrets.KEY_STORE }}
         run: |
-          echo "${{ secrets.KEY_STORE }}" | base64 --decode > app/keystore.jks
-        continue-on-error: true
+          if [ -n "$KEY_STORE" ]; then
+            echo "$KEY_STORE" | base64 --decode > app/keystore.jks
+            echo "Keystore decoded successfully ($(stat -c%s app/keystore.jks) bytes)"
+          else
+            echo "WARNING: KEY_STORE secret is empty - APK will be signed with debug key"
+          fi
 
       - name: Create keystore properties file
+        env:
+          KEY_STORE: ${{ secrets.KEY_STORE }}
         run: |
-          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
-          echo "storeFile=keystore.jks" >> key.properties
-        continue-on-error: true
+          if [ -n "$KEY_STORE" ]; then
+            echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > key.properties
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
+            echo "storeFile=keystore.jks" >> key.properties
+          else
+            echo "Skipping key.properties (no keystore secret)"
+          fi
 
       - name: Build APK
         run: |
           ./gradlew assembleRelease --stacktrace -x lint
 
-      - name: Rename APK
+      - name: Rename APKs
         run: |
           mkdir -p release
-          cp app/build/outputs/apk/release/app-universal-release.apk release/CCloud-universal.apk
+          ls -la app/build/outputs/apk/release/
+          cp app/build/outputs/apk/release/app-universal-release.apk release/DarkNama-universal.apk
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk release/DarkNama-arm64-v8a.apk
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk release/DarkNama-armeabi-v7a.apk
 
       - name: Get tag name
         id: get_tag
@@ -108,9 +105,11 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            release/CCloud-universal.apk
+            release/DarkNama-universal.apk
+            release/DarkNama-arm64-v8a.apk
+            release/DarkNama-armeabi-v7a.apk
           body: |
-            ## CCloud Release ${{ env.TAG_NAME }}
+            ## DarkNama Release ${{ env.TAG_NAME }}
             
             ### What's New
             - Modernized UI with enhanced user experience
@@ -118,10 +117,13 @@ jobs:
             - New features and bug fixes
             
             ### Download Options
-            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/CCloud-universal.apk) - Compatible with all devices
+            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/DarkNama-universal.apk) - Compatible with all devices
+            - [ARM64 APK (arm64-v8a)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/DarkNama-arm64-v8a.apk) - For modern 64-bit devices (recommended, smaller size)
+            - [ARM32 APK (armeabi-v7a)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/DarkNama-armeabi-v7a.apk) - For older 32-bit devices
 
             ### Installation
             1. Download the appropriate APK file for your device
             2. Enable "Install from unknown sources" in your device settings
-            3. Open and install the APK
-            4. Launch CCloud and enjoy your movies!
+            3. If Google Play Protect shows a warning, tap "More details" then "Install anyway"
+            4. Open and install the APK
+            5. Launch DarkNama and enjoy your movies!
