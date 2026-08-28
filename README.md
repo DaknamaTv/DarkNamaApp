@@ -1,28 +1,28 @@
-# CCloud - Movie & TV Series Streaming Application
+# DarkNama - Movie & TV Series Streaming Application
 
 <p align="center">
-  <img src="app/src/main/res/drawable/splash_logo.png" alt="CCloud Logo" width="150"/>
+  <img src="app/src/main/res/drawable/splash_logo.png" alt="DarkNama Logo" width="150"/>
 </p>
 
 <div align="center">
 
   <!-- Downloads -->
-  <img src="https://img.shields.io/github/downloads/code3-dev/CCloud/total?label=Downloads&style=for-the-badge" alt="Downloads Badge">
+  <img src="https://img.shields.io/github/downloads/DaknamaTv/DarkNamaApp/total?label=Downloads&style=for-the-badge" alt="Downloads Badge">
 
   <!-- Main language -->
-  <img src="https://img.shields.io/github/languages/top/code3-dev/CCloud?color=blue&label=Kotlin&style=for-the-badge" alt="Language">
+  <img src="https://img.shields.io/github/languages/top/DaknamaTv/DarkNamaApp?color=blue&label=Kotlin&style=for-the-badge" alt="Language">
 
   <!-- License -->
-  <img src="https://img.shields.io/github/license/code3-dev/CCloud?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/github/license/DaknamaTv/DarkNamaApp?style=for-the-badge" alt="License">
 
   <!-- Stars -->
-  <img src="https://img.shields.io/github/stars/code3-dev/CCloud?style=for-the-badge" alt="Stars">
+  <img src="https://img.shields.io/github/stars/DaknamaTv/DarkNamaApp?style=for-the-badge" alt="Stars">
 
   <!-- Issues -->
-  <img src="https://img.shields.io/github/issues/code3-dev/CCloud?style=for-the-badge" alt="Issues">
+  <img src="https://img.shields.io/github/issues/DaknamaTv/DarkNamaApp?style=for-the-badge" alt="Issues">
 
   <!-- Build Status -->
-  <img src="https://img.shields.io/github/actions/workflow/status/code3-dev/CCloud/build-appshare.yml?label=Build&style=for-the-badge" alt="Build Status">
+  <img src="https://img.shields.io/github/actions/workflow/status/DaknamaTv/DarkNamaApp/build-appshare.yml?label=Build&style=for-the-badge" alt="Build Status">
 
   <!-- Min Android Version -->
   <img src="https://img.shields.io/badge/Android-7.0%2B-green?style=for-the-badge&logo=android" alt="Min Android">
@@ -34,13 +34,13 @@
 
 ---
 
-CCloud is a modern Android streaming application built with Jetpack Compose and Kotlin. The app provides a sleek user interface for browsing movies and TV series, playing videos, and customizing the viewing experience. With a focus on user experience and performance, CCloud delivers high-quality streaming content in an intuitive and visually appealing interface.
+DarkNama is a modern Android streaming application built with Jetpack Compose and Kotlin. The app provides a sleek user interface for browsing movies and TV series, playing videos, and customizing the viewing experience. With a focus on user experience and performance, DarkNama delivers high-quality streaming content in an intuitive and visually appealing interface.
 
-## 📦 Download Latest CCloud APKs
+## 📦 Download Latest DarkNama APKs
 
 <div align="center">
 
-[![Universal](https://img.shields.io/badge/⬇️%20Download-Universal-purple?style=for-the-badge&logo=android)](https://github.com/code3-dev/CCloud/releases/latest/download/CCloud-universal.apk)
+[![Universal](https://img.shields.io/badge/⬇️%20Download-Universal-purple?style=for-the-badge&logo=android)](https://github.com/DaknamaTv/DarkNamaApp/releases/latest/download/DarkNama-universal.apk)
 
 </div>
 
@@ -107,7 +107,7 @@ The app follows a clean architecture pattern with the following components:
 
 ## 📱 Supported Android Versions
 
-CCloud supports Android 8.0 (API level 24) and higher. The app is optimized for:
+DarkNama supports Android 8.0 (API level 24) and higher. The app is optimized for:
 
 - **Android 8.0 - 16** (API levels 24-36)
 - **Android TV** devices
@@ -130,7 +130,7 @@ CCloud supports Android 8.0 (API level 24) and higher. The app is optimized for:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/code3-dev/CCloud.git
+   git clone https://github.com/DaknamaTv/DarkNamaApp.git
    ```
 
 2. Open the project in Android Studio
@@ -183,7 +183,7 @@ These scripts will regenerate the Gradle wrapper checksums which are required fo
 app/
 ├── src/
 │   ├── main/
-│   │   ├── java/com/pira/ccloud/
+│   │   ├── java/com/pira/darknama/
 │   │   │   ├── components/           # Reusable UI components
 │   │   │   ├── data/                 # Data layer
 │   │   │   │   ├── model/            # Data models (Movie, Series, etc.)
@@ -347,20 +347,20 @@ When watching videos on Android TV, you can control playback using your remote c
 
 ### ⭐ Stars History
 
-[![Stargazers over time](https://starchart.cc/code3-dev/CCloud.svg?variant=adaptive)](https://starchart.cc/code3-dev/CCloud)
+[![Stargazers over time](https://starchart.cc/DaknamaTv/DarkNamaApp.svg?variant=adaptive)](https://starchart.cc/DaknamaTv/DarkNamaApp)
 
 ---
 
 ### 📊 Downloads History
 
-![GitHub all releases](https://img.shields.io/github/downloads/code3-dev/CCloud/total?style=for-the-badge&label=Total%20Downloads)
-![GitHub release (latest by date)](https://img.shields.io/github/downloads/code3-dev/CCloud/latest/total?style=for-the-badge&label=Latest%20Release)
+![GitHub all releases](https://img.shields.io/github/downloads/DaknamaTv/DarkNamaApp/total?style=for-the-badge&label=Total%20Downloads)
+![GitHub release (latest by date)](https://img.shields.io/github/downloads/DaknamaTv/DarkNamaApp/latest/total?style=for-the-badge&label=Latest%20Release)
 
 </div>
 
 ## 🤝 Contributing
 
-We welcome contributions to CCloud! Here's how you can help:
+We welcome contributions to DarkNama! Here's how you can help:
 
 1. Fork the repository
 2. Create a feature branch

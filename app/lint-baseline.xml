@@ -18,7 +18,7 @@
         errorLine1="                    text = &quot;${favorite.type.capitalize()} • ${favorite.year}&quot;,"
         errorLine2="                                            ~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/FavoritesScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/FavoritesScreen.kt"
             line="237"
             column="45"/>
     </issue>
@@ -29,7 +29,7 @@
         errorLine1="                        text = String.format(&quot;%.1f&quot;, favorite.imdb)"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/FavoritesScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/FavoritesScreen.kt"
             line="253"
             column="32"/>
     </issue>
@@ -40,7 +40,7 @@
         errorLine1="                        text = String.format(&quot;%.1f&quot;, movie.imdb),"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/MoviesScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/MoviesScreen.kt"
             line="451"
             column="32"/>
     </issue>
@@ -51,7 +51,7 @@
         errorLine1="                        text = String.format(&quot;%.1f&quot;, poster.imdb),"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/SearchScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/SearchScreen.kt"
             line="358"
             column="32"/>
     </issue>
@@ -62,7 +62,7 @@
         errorLine1="                        text = String.format(&quot;%.1f&quot;, series.imdb),"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/SeriesScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/SeriesScreen.kt"
             line="451"
             column="32"/>
     </issue>
@@ -73,7 +73,7 @@
         errorLine1="                text = String.format(&quot;%.1f&quot;, movie.imdb),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/SingleMovieScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/SingleMovieScreen.kt"
             line="314"
             column="24"/>
     </issue>
@@ -84,7 +84,7 @@
         errorLine1="                    text = String.format(&quot;%.1f&quot;, series.imdb),"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/SingleSeriesScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/SingleSeriesScreen.kt"
             line="545"
             column="28"/>
     </issue>
@@ -95,7 +95,7 @@
         errorLine1="        String.format(&quot;%02d:%02d:%02d&quot;, hours, remainingMinutes, remainingSeconds)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="694"
             column="9"/>
     </issue>
@@ -106,7 +106,7 @@
         errorLine1="        String.format(&quot;%02d:%02d&quot;, remainingMinutes, remainingSeconds)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="696"
             column="9"/>
     </issue>
@@ -128,7 +128,7 @@
         errorLine1="agp = &quot;8.9.2&quot;"
         errorLine2="      ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="2"
             column="7"/>
     </issue>
@@ -139,7 +139,7 @@
         errorLine1="agp = &quot;8.9.2&quot;"
         errorLine2="      ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="2"
             column="7"/>
     </issue>
@@ -150,7 +150,7 @@
         errorLine1="agp = &quot;8.9.2&quot;"
         errorLine2="      ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="2"
             column="7"/>
     </issue>
@@ -238,7 +238,7 @@
         errorLine1="kotlin = &quot;2.0.21&quot;"
         errorLine2="         ~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="3"
             column="10"/>
     </issue>
@@ -249,7 +249,7 @@
         errorLine1="kotlin = &quot;2.0.21&quot;"
         errorLine2="         ~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="3"
             column="10"/>
     </issue>
@@ -260,7 +260,7 @@
         errorLine1="kotlin = &quot;2.0.21&quot;"
         errorLine2="         ~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="3"
             column="10"/>
     </issue>
@@ -271,7 +271,7 @@
         errorLine1="coreKtx = &quot;1.16.0&quot;"
         errorLine2="          ~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="4"
             column="11"/>
     </issue>
@@ -282,7 +282,7 @@
         errorLine1="coreKtx = &quot;1.16.0&quot;"
         errorLine2="          ~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="4"
             column="11"/>
     </issue>
@@ -293,7 +293,7 @@
         errorLine1="junitVersion = &quot;1.2.1&quot;"
         errorLine2="               ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="6"
             column="16"/>
     </issue>
@@ -304,7 +304,7 @@
         errorLine1="junitVersion = &quot;1.2.1&quot;"
         errorLine2="               ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="6"
             column="16"/>
     </issue>
@@ -315,7 +315,7 @@
         errorLine1="espressoCore = &quot;3.6.1&quot;"
         errorLine2="               ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="7"
             column="16"/>
     </issue>
@@ -326,7 +326,7 @@
         errorLine1="espressoCore = &quot;3.6.1&quot;"
         errorLine2="               ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="7"
             column="16"/>
     </issue>
@@ -337,7 +337,7 @@
         errorLine1="lifecycleRuntimeKtx = &quot;2.8.7&quot;"
         errorLine2="                      ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="8"
             column="23"/>
     </issue>
@@ -348,7 +348,7 @@
         errorLine1="lifecycleRuntimeKtx = &quot;2.8.7&quot;"
         errorLine2="                      ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="8"
             column="23"/>
     </issue>
@@ -359,7 +359,7 @@
         errorLine1="lifecycleRuntimeKtx = &quot;2.8.7&quot;"
         errorLine2="                      ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="8"
             column="23"/>
     </issue>
@@ -370,7 +370,7 @@
         errorLine1="activityCompose = &quot;1.10.1&quot;"
         errorLine2="                  ~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="9"
             column="19"/>
     </issue>
@@ -381,7 +381,7 @@
         errorLine1="activityCompose = &quot;1.10.1&quot;"
         errorLine2="                  ~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="9"
             column="19"/>
     </issue>
@@ -392,7 +392,7 @@
         errorLine1="activityCompose = &quot;1.10.1&quot;"
         errorLine2="                  ~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="9"
             column="19"/>
     </issue>
@@ -403,7 +403,7 @@
         errorLine1="composeBom = &quot;2024.09.00&quot;"
         errorLine2="             ~~~~~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="10"
             column="14"/>
     </issue>
@@ -414,7 +414,7 @@
         errorLine1="composeBom = &quot;2024.09.00&quot;"
         errorLine2="             ~~~~~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="10"
             column="14"/>
     </issue>
@@ -425,7 +425,7 @@
         errorLine1="composeBom = &quot;2024.09.00&quot;"
         errorLine2="             ~~~~~~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="10"
             column="14"/>
     </issue>
@@ -436,7 +436,7 @@
         errorLine1="navigationCompose = &quot;2.8.7&quot;"
         errorLine2="                    ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="11"
             column="21"/>
     </issue>
@@ -447,7 +447,7 @@
         errorLine1="navigationCompose = &quot;2.8.7&quot;"
         errorLine2="                    ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="11"
             column="21"/>
     </issue>
@@ -458,7 +458,7 @@
         errorLine1="navigationCompose = &quot;2.8.7&quot;"
         errorLine2="                    ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="11"
             column="21"/>
     </issue>
@@ -469,7 +469,7 @@
         errorLine1="leanback = &quot;1.0.0&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="14"
             column="12"/>
     </issue>
@@ -480,7 +480,7 @@
         errorLine1="leanback = &quot;1.0.0&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="14"
             column="12"/>
     </issue>
@@ -491,7 +491,7 @@
         errorLine1="leanback = &quot;1.0.0&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="14"
             column="12"/>
     </issue>
@@ -502,7 +502,7 @@
         errorLine1="leanback = &quot;1.0.0&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="14"
             column="12"/>
     </issue>
@@ -513,7 +513,7 @@
         errorLine1="leanback = &quot;1.0.0&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="14"
             column="12"/>
     </issue>
@@ -524,7 +524,7 @@
         errorLine1="leanback = &quot;1.0.0&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/AndroidStudioProjects/CCloud/gradle/libs.versions.toml"
+            file="$HOME/AndroidStudioProjects/DarkNama/gradle/libs.versions.toml"
             line="14"
             column="12"/>
     </issue>
@@ -535,7 +535,7 @@
         errorLine1="            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/MainActivity.kt"
+            file="src/main/java/com/pira/darknama/MainActivity.kt"
             line="57"
             column="13"/>
     </issue>
@@ -546,7 +546,7 @@
         errorLine1="    subtitleView?.setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, pixels)"
         errorLine2="    ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="78"
             column="5"/>
     </issue>
@@ -557,7 +557,7 @@
         errorLine1="    subtitleView?.setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, pixels)"
         errorLine2="                  ~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="78"
             column="19"/>
     </issue>
@@ -568,7 +568,7 @@
         errorLine1="    subtitleView?.setStyle("
         errorLine2="    ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="83"
             column="5"/>
     </issue>
@@ -579,7 +579,7 @@
         errorLine1="    subtitleView?.setStyle("
         errorLine2="                  ~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="83"
             column="19"/>
     </issue>
@@ -590,7 +590,7 @@
         errorLine1="        CaptionStyleCompat("
         errorLine2="        ~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="84"
             column="9"/>
     </issue>
@@ -601,7 +601,7 @@
         errorLine1="            CaptionStyleCompat.EDGE_TYPE_OUTLINE,"
         errorLine2="                               ~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="88"
             column="32"/>
     </issue>
@@ -612,7 +612,7 @@
         errorLine1="                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT"
         errorLine2="                    ~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="495"
             column="21"/>
     </issue>
@@ -623,7 +623,7 @@
         errorLine1="                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT"
         errorLine2="                    ~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="495"
             column="21"/>
     </issue>
@@ -634,7 +634,7 @@
         errorLine1="                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT"
         errorLine2="                                                        ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="495"
             column="57"/>
     </issue>
@@ -656,7 +656,7 @@
         errorLine1="    var currentPage by mutableStateOf(0)"
         errorLine2="                       ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/ui/movies/MoviesViewModel.kt"
+            file="src/main/java/com/pira/darknama/ui/movies/MoviesViewModel.kt"
             line="28"
             column="24"/>
     </issue>
@@ -667,7 +667,7 @@
         errorLine1="    var currentPage by mutableStateOf(0)"
         errorLine2="                       ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/ui/series/SeriesViewModel.kt"
+            file="src/main/java/com/pira/darknama/ui/series/SeriesViewModel.kt"
             line="28"
             column="24"/>
     </issue>
@@ -678,7 +678,7 @@
         errorLine1="    var selectedSeasonIndex by remember { mutableStateOf(0) }"
         errorLine2="                                          ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/SingleSeriesScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/SingleSeriesScreen.kt"
             line="377"
             column="43"/>
     </issue>
@@ -689,7 +689,7 @@
         errorLine1="    var currentPosition by remember { mutableStateOf(0L) }"
         errorLine2="                                      ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="194"
             column="39"/>
     </issue>
@@ -700,7 +700,7 @@
         errorLine1="    var duration by remember { mutableStateOf(0L) }"
         errorLine2="                               ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="195"
             column="32"/>
     </issue>
@@ -874,7 +874,7 @@
         errorLine1="                            data = Uri.parse(&quot;mailto:$url&quot;)"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/AboutScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/AboutScreen.kt"
             line="197"
             column="36"/>
     </issue>
@@ -885,7 +885,7 @@
         errorLine1="                            data = Uri.parse(&quot;mailto:$url&quot;)"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/AboutScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/AboutScreen.kt"
             line="197"
             column="36"/>
     </issue>
@@ -896,7 +896,7 @@
         errorLine1="                        Intent(Intent.ACTION_VIEW, Uri.parse(url))"
         errorLine2="                                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/AboutScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/AboutScreen.kt"
             line="200"
             column="52"/>
     </issue>
@@ -907,7 +907,7 @@
         errorLine1="            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))"
         errorLine2="                                                    ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/utils/DownloadUtils.kt"
+            file="src/main/java/com/pira/darknama/utils/DownloadUtils.kt"
             line="11"
             column="53"/>
     </issue>
@@ -918,7 +918,7 @@
         errorLine1="                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))"
         errorLine2="                                                            ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/utils/DownloadUtils.kt"
+            file="src/main/java/com/pira/darknama/utils/DownloadUtils.kt"
             line="41"
             column="61"/>
     </issue>
@@ -929,7 +929,7 @@
         errorLine1="                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(&quot;adm://$url&quot;))"
         errorLine2="                                                            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/utils/DownloadUtils.kt"
+            file="src/main/java/com/pira/darknama/utils/DownloadUtils.kt"
             line="54"
             column="61"/>
     </issue>
@@ -940,7 +940,7 @@
         errorLine1="            intent.setDataAndType(Uri.parse(url), &quot;video/*&quot;)"
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/utils/DownloadUtils.kt"
+            file="src/main/java/com/pira/darknama/utils/DownloadUtils.kt"
             line="75"
             column="35"/>
     </issue>
@@ -951,7 +951,7 @@
         errorLine1="            intent.setDataAndType(Uri.parse(url), &quot;video/*&quot;)"
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/utils/DownloadUtils.kt"
+            file="src/main/java/com/pira/darknama/utils/DownloadUtils.kt"
             line="87"
             column="35"/>
     </issue>
@@ -962,7 +962,7 @@
         errorLine1="                intent.setDataAndType(Uri.parse(url), &quot;video/*&quot;)"
         errorLine2="                                      ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/utils/DownloadUtils.kt"
+            file="src/main/java/com/pira/darknama/utils/DownloadUtils.kt"
             line="94"
             column="39"/>
     </issue>
@@ -973,7 +973,7 @@
         errorLine1="            intent.setDataAndType(Uri.parse(url), &quot;video/*&quot;)"
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/utils/DownloadUtils.kt"
+            file="src/main/java/com/pira/darknama/utils/DownloadUtils.kt"
             line="107"
             column="35"/>
     </issue>
@@ -984,7 +984,7 @@
         errorLine1="                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(latestVersionUrl))"
         errorLine2="                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/screens/SettingsScreen.kt"
+            file="src/main/java/com/pira/darknama/screens/SettingsScreen.kt"
             line="815"
             column="65"/>
     </issue>
@@ -995,7 +995,7 @@
         errorLine1="                setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))"
         errorLine2="                                               ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pira/ccloud/VideoPlayerActivity.kt"
+            file="src/main/java/com/pira/darknama/VideoPlayerActivity.kt"
             line="216"
             column="48"/>
     </issue>
