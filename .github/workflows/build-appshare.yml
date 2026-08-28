@@ -1,4 +1,4 @@
-name: Build and Release CCloud
+name: Build and Release
 
 on:
   push:
