@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.pira.darknama"
+    namespace = "com.dark.darknama"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.pira.darknama"
+        applicationId = "com.dark.darknama"
         // Supported Android versions: Android 8.0 (API 24) and higher
         // Android 7.0 (API 23) and earlier are not supported
         minSdk = 24
@@ -71,15 +71,6 @@ android {
         
         debug {
             isDebuggable = true
-        }
-    }
-    
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "armeabi-v7a")
-            isUniversalApk = true
         }
     }
     

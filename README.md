@@ -40,7 +40,7 @@ DarkNama is a modern Android streaming application built with Jetpack Compose an
 
 <div align="center">
 
-[![Universal](https://img.shields.io/badge/⬇️%20Download-Universal-purple?style=for-the-badge&logo=android)](https://github.com/DaknamaTv/DarkNamaApp/releases/latest/download/DarkNama-universal.apk)
+[![Download](https://img.shields.io/badge/⬇️%20Download-APK-purple?style=for-the-badge&logo=android)](https://github.com/DaknamaTv/DarkNamaApp/releases/latest/download/DarkNama.apk)
 
 </div>
 
@@ -183,7 +183,7 @@ These scripts will regenerate the Gradle wrapper checksums which are required fo
 app/
 ├── src/
 │   ├── main/
-│   │   ├── java/com/pira/darknama/
+│   │   ├── java/com/dark/darknama/
 │   │   │   ├── components/           # Reusable UI components
 │   │   │   ├── data/                 # Data layer
 │   │   │   │   ├── model/            # Data models (Movie, Series, etc.)
