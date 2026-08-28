@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">DarkNama</string>
+    <string name="movies">فیلم‌ها</string>
+    <string name="series">سریال‌ها</string>
+    <string name="search">جستجو</string>
+    <string name="settings">تنظیمات</string>
+    <string name="about">درباره</string>
+    <string name="movie_details">جزئیات فیلم</string>
+    <string name="series_details">جزئیات سریال</string>
+    <string name="video_player">پخش‌کننده ویدیو</string>
+    <string name="favorites">علاقه‌مندی‌ها</string>
+    <string name="country">کشور</string>
+</resources>
