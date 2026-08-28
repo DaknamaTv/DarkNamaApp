@@ -66,6 +66,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.dark.darknama.components.GenreFilterSection
 import com.dark.darknama.components.NetworkLogoButton
+import com.dark.darknama.components.SettingsIconButton
 import com.dark.darknama.data.model.Genre
 import com.dark.darknama.data.model.Movie
 import com.dark.darknama.ui.movies.MoviesViewModel
@@ -107,7 +108,12 @@ fun MoviesScreen(
                 color = MaterialTheme.colorScheme.primary
             )
             
-            NetworkLogoButton()
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                NetworkLogoButton()
+                Spacer(modifier = Modifier.width(8.dp))
+                // Settings gear at the top — opens the Settings screen
+                SettingsIconButton(navController = navController)
+            }
         }
         
         // Genre filter section

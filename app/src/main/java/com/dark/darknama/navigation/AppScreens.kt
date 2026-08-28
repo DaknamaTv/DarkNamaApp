@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -41,10 +42,20 @@ sealed class AppScreens(
         icon = Icons.Default.Search
     )
 
+    data object LiveTv : AppScreens(
+        route = "live_tv",
+        resourceId = R.string.live_tv,
+        icon = Icons.Default.LiveTv
+    )
+
+    // Settings is opened from the gear icon at the top of the screens
+    // instead of the bottom navigation bar / TV sidebar.
     data object Settings : AppScreens(
         route = "settings",
         resourceId = R.string.settings,
-        icon = Icons.Default.Settings
+        icon = Icons.Default.Settings,
+        showBottomBar = true,
+        showSidebar = true
     )
 
     data object SingleMovie : AppScreens(
@@ -87,6 +98,8 @@ sealed class AppScreens(
     )
 
     companion object {
-        val screens = listOf(Movies, Series, Search, Favorites, Settings)
+        // Screens shown in the bottom navigation bar (mobile) and sidebar (TV).
+        // Settings moved to a gear icon at the top of each screen.
+        val screens = listOf(Movies, Series, LiveTv, Search, Favorites)
     }
 }

@@ -71,6 +71,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.dark.darknama.R
+import com.dark.darknama.components.SettingsIconButton
 import com.dark.darknama.data.model.Country
 import com.dark.darknama.data.model.Poster
 import com.dark.darknama.ui.search.SearchViewModel
@@ -96,6 +97,23 @@ fun SearchScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Top header with title and settings gear
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = stringResource(R.string.search),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            SettingsIconButton(navController = navController)
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
         // Search bar
         TextField(
             value = viewModel.searchQuery,

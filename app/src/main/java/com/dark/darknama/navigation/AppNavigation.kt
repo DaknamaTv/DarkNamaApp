@@ -18,7 +18,9 @@ import com.dark.darknama.screens.SingleSeriesScreen
 import com.dark.darknama.screens.SplashScreen
 import com.dark.darknama.screens.FavoritesScreen
 import com.dark.darknama.screens.CountryScreen
+import com.dark.darknama.screens.LiveTvScreen
 import com.dark.darknama.ui.movies.MoviesViewModel
+import com.dark.darknama.ui.tv.LiveTvViewModel
 import com.dark.darknama.ui.search.SearchViewModel
 import com.dark.darknama.ui.series.SeriesViewModel
 import com.dark.darknama.ui.country.CountryViewModel
@@ -42,6 +44,7 @@ fun AppNavigation(
     val seriesViewModel = viewModel<SeriesViewModel>()
     val searchViewModel = viewModel<SearchViewModel>()
     val countryViewModel = viewModel<CountryViewModel>()
+    val liveTvViewModel = viewModel<LiveTvViewModel>()
     
     NavHost(
         navController = navController,
@@ -83,6 +86,9 @@ fun AppNavigation(
         }
         composable(route = AppScreens.Search.route) {
             SearchScreen(viewModel = searchViewModel, navController = navController)
+        }
+        composable(route = AppScreens.LiveTv.route) {
+            LiveTvScreen(viewModel = liveTvViewModel, navController = navController)
         }
         composable(route = AppScreens.Settings.route) {
             SettingsScreen(onThemeSettingsChanged, onFontSettingsChanged, navController) // Pass font settings callback

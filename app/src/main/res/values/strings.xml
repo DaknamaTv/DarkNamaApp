@@ -10,4 +10,19 @@
     <string name="video_player">Video Player</string>
     <string name="favorites">Favorites</string>
     <string name="country">Country</string>
+    <string name="live_tv">Live TV</string>
+    <string name="tv_persian">Persian</string>
+    <string name="tv_country">Country</string>
+    <string name="tv_category">Category</string>
+    <string name="tv_all">All</string>
+    <string name="tv_select_country">Select Country</string>
+    <string name="tv_select_category">Select Category</string>
+    <string name="tv_search_hint">Search channels…</string>
+    <string name="tv_filter_hint">Filter…</string>
+    <string name="tv_loading">Loading channels…</string>
+    <string name="tv_error">Failed to load channels</string>
+    <string name="tv_retry">Retry</string>
+    <string name="tv_no_channels">No channels found</string>
+    <string name="tv_no_results">No results</string>
+    <string name="tv_cancel">Cancel</string>
 </resources>

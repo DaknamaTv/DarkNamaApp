@@ -10,4 +10,19 @@
     <string name="video_player">پخش‌کننده ویدیو</string>
     <string name="favorites">علاقه‌مندی‌ها</string>
     <string name="country">کشور</string>
+    <string name="live_tv">تلویزیون</string>
+    <string name="tv_persian">فارسی</string>
+    <string name="tv_country">کشور</string>
+    <string name="tv_category">دسته‌بندی</string>
+    <string name="tv_all">همه</string>
+    <string name="tv_select_country">انتخاب کشور</string>
+    <string name="tv_select_category">انتخاب دسته‌بندی</string>
+    <string name="tv_search_hint">جستجوی شبکه…</string>
+    <string name="tv_filter_hint">فیلتر…</string>
+    <string name="tv_loading">در حال بارگذاری شبکه‌ها…</string>
+    <string name="tv_error">خطا در بارگذاری شبکه‌ها</string>
+    <string name="tv_retry">تلاش مجدد</string>
+    <string name="tv_no_channels">شبکه‌ای یافت نشد</string>
+    <string name="tv_no_results">نتیجه‌ای یافت نشد</string>
+    <string name="tv_cancel">انصراف</string>
 </resources>
