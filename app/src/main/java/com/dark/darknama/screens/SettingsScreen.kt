@@ -1,9 +1,10 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.dark.darknama.screens
 
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import android.view.KeyEvent
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -13,8 +14,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,8 +61,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -102,16 +104,18 @@ import kotlinx.serialization.json.Json
 import java.net.URL
 
 /**
- * Returns true only for a "select/confirm" KeyUp event so that actions are not
- * triggered twice (KeyDown + KeyUp) and the Android TV remote's D-pad center
- * button (Key.DirectionCenter) is handled properly.
+ * Modifier that draws a visible focus ring so D-pad users can see which
+ * element is focused on Android TV.
  */
-private fun isSelectKeyUp(keyEvent: androidx.compose.ui.input.key.KeyEvent): Boolean =
-    keyEvent.type == KeyEventType.KeyUp &&
-        (keyEvent.key == Key.Enter ||
-            keyEvent.key == Key.NumPadEnter ||
-            keyEvent.key == Key.Spacebar ||
-            keyEvent.key == Key.DirectionCenter)
+@Composable
+private fun Modifier.tvFocusBorder(
+    isFocused: Boolean,
+    shape: RoundedCornerShape = RoundedCornerShape(12.dp)
+): Modifier = this.border(
+    width = if (isFocused) 2.dp else 0.dp,
+    color = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+    shape = shape
+)
 
 @Serializable
 data class GitHubRelease(
@@ -138,14 +142,6 @@ fun SettingsScreen(
     var latestVersionUrl by remember { mutableStateOf("") }
     var isCheckingUpdate by remember { mutableStateOf(false) }
     var watchedEpisodesCacheSize by remember { mutableStateOf(0L) }
-    
-    // Focus requesters for handling TV remote navigation
-    val focusRequester = remember { FocusRequester() }
-    val themeCardFocusRequester = remember { FocusRequester() }
-    val videoCardFocusRequester = remember { FocusRequester() }
-    val aboutCardFocusRequester = remember { FocusRequester() }
-    val updateCardFocusRequester = remember { FocusRequester() }
-    val resetCardFocusRequester = remember { FocusRequester() }
     
     // Configure JSON to ignore unknown keys
     val json = Json { ignoreUnknownKeys = true }
@@ -304,9 +300,7 @@ fun SettingsScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .focusRequester(focusRequester)
-            .focusable(),
+            .padding(16.dp),
     ) {
         item {
             AnimatedVisibility(
@@ -333,10 +327,7 @@ fun SettingsScreen(
                             // Recreate the activity so the new locale is applied
                             (context as? android.app.Activity)?.recreate()
                         },
-                        modifier = Modifier
-                            .size(48.dp)
-                            .focusable()
-                            .focusRequester(remember { FocusRequester() })
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Language,
@@ -349,10 +340,7 @@ fun SettingsScreen(
                     navController?.let {
                         IconButton(
                             onClick = { navController.navigate("favorites") },
-                            modifier = Modifier
-                                .size(48.dp)
-                                .focusable()
-                                .focusRequester(remember { FocusRequester() })
+                            modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Favorite,
@@ -368,7 +356,8 @@ fun SettingsScreen(
         // Theme Settings Card
         item {
             var isExpanded by remember { mutableStateOf(false) }
-            val focusRequester = remember { FocusRequester() }
+            val interactionSource = remember { MutableInteractionSource() }
+            val isFocused by interactionSource.collectIsFocusedAsState()
             
             AnimatedVisibility(
                 visible = true,
@@ -376,18 +365,12 @@ fun SettingsScreen(
                 exit = fadeOut(animationSpec = tween(400)) + slideOutVertically(animationSpec = tween(400))
             ) {
                 Card(
+                    onClick = { isExpanded = !isExpanded },
+                    interactionSource = interactionSource,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { isExpanded = !isExpanded }
-                        .focusable()
-                        .focusRequester(themeCardFocusRequester)
-                        .onKeyEvent { keyEvent ->
-                            if (isSelectKeyUp(keyEvent)) {
-                                isExpanded = !isExpanded
-                                true
-                            } else false
-                        },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .tvFocusBorder(isFocused),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isFocused) 8.dp else 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -531,7 +514,8 @@ fun SettingsScreen(
         // Video Player Settings Card
         item {
             var isExpanded by remember { mutableStateOf(false) }
-            val focusRequester = remember { FocusRequester() }
+            val interactionSource = remember { MutableInteractionSource() }
+            val isFocused by interactionSource.collectIsFocusedAsState()
             
             AnimatedVisibility(
                 visible = true,
@@ -539,18 +523,12 @@ fun SettingsScreen(
                 exit = fadeOut(animationSpec = tween(600)) + slideOutVertically(animationSpec = tween(600))
             ) {
                 Card(
+                    onClick = { isExpanded = !isExpanded },
+                    interactionSource = interactionSource,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { isExpanded = !isExpanded }
-                        .focusable()
-                        .focusRequester(videoCardFocusRequester)
-                        .onKeyEvent { keyEvent ->
-                            if (isSelectKeyUp(keyEvent)) {
-                                isExpanded = !isExpanded
-                                true
-                            } else false
-                        },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .tvFocusBorder(isFocused),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isFocused) 8.dp else 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -596,7 +574,6 @@ fun SettingsScreen(
                                     steps = 24, // Allow values from 5 to 30 in 1-second increments,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .focusable()
                                         .onKeyEvent { keyEvent ->
                                             if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
                                             when (keyEvent.key) {
@@ -613,6 +590,7 @@ fun SettingsScreen(
                                                 else -> false
                                             }
                                         }
+                                        .focusable()
                                 )
                                 
                                 Spacer(modifier = Modifier.height(16.dp))
@@ -664,7 +642,6 @@ fun SettingsScreen(
                                     valueRange = 10f..50f,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .focusable()
                                         .onKeyEvent { keyEvent ->
                                             if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
                                             when (keyEvent.key) {
@@ -681,6 +658,7 @@ fun SettingsScreen(
                                                 else -> false
                                             }
                                         }
+                                        .focusable()
                                 )
                             }
                         }
@@ -702,7 +680,8 @@ fun SettingsScreen(
         // Font Settings Card
         item {
             var isExpanded by remember { mutableStateOf(false) }
-            val focusRequester = remember { FocusRequester() }
+            val interactionSource = remember { MutableInteractionSource() }
+            val isFocused by interactionSource.collectIsFocusedAsState()
             
             AnimatedVisibility(
                 visible = true,
@@ -710,18 +689,12 @@ fun SettingsScreen(
                 exit = fadeOut(animationSpec = tween(800)) + slideOutVertically(animationSpec = tween(800))
             ) {
                 Card(
+                    onClick = { isExpanded = !isExpanded },
+                    interactionSource = interactionSource,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { isExpanded = !isExpanded }
-                        .focusable()
-                        .focusRequester(remember { FocusRequester() })
-                        .onKeyEvent { keyEvent ->
-                            if (isSelectKeyUp(keyEvent)) {
-                                isExpanded = !isExpanded
-                                true
-                            } else false
-                        },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .tvFocusBorder(isFocused),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isFocused) 8.dp else 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -796,7 +769,8 @@ fun SettingsScreen(
         
         // Episode Marks Cache Card
         item {
-            val focusRequester = remember { FocusRequester() }
+            val interactionSource = remember { MutableInteractionSource() }
+            val isFocused by interactionSource.collectIsFocusedAsState()
             
             AnimatedVisibility(
                 visible = true,
@@ -804,18 +778,12 @@ fun SettingsScreen(
                 exit = fadeOut(animationSpec = tween(900)) + slideOutVertically(animationSpec = tween(900))
             ) {
                 Card(
+                    onClick = { showClearWatchedEpisodesDialog = true },
+                    interactionSource = interactionSource,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showClearWatchedEpisodesDialog = true }
-                        .focusable()
-                        .focusRequester(remember { FocusRequester() })
-                        .onKeyEvent { keyEvent ->
-                            if (isSelectKeyUp(keyEvent)) {
-                                showClearWatchedEpisodesDialog = true
-                                true
-                            } else false
-                        },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .tvFocusBorder(isFocused),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isFocused) 8.dp else 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -872,7 +840,8 @@ fun SettingsScreen(
         
         // About Card
         item {
-            val focusRequester = remember { FocusRequester() }
+            val interactionSource = remember { MutableInteractionSource() }
+            val isFocused by interactionSource.collectIsFocusedAsState()
             
             AnimatedVisibility(
                 visible = true,
@@ -880,18 +849,12 @@ fun SettingsScreen(
                 exit = fadeOut(animationSpec = tween(1100)) + slideOutVertically(animationSpec = tween(1100))
             ) {
                 Card(
+                    onClick = { navController?.navigate("about") },
+                    interactionSource = interactionSource,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { navController?.navigate("about") }
-                        .focusable()
-                        .focusRequester(aboutCardFocusRequester)
-                        .onKeyEvent { keyEvent ->
-                            if (isSelectKeyUp(keyEvent)) {
-                                navController?.navigate("about")
-                                true
-                            } else false
-                        },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .tvFocusBorder(isFocused),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isFocused) 8.dp else 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -937,7 +900,8 @@ fun SettingsScreen(
         
         // Check for Updates Card
         item {
-            val focusRequester = remember { FocusRequester() }
+            val interactionSource = remember { MutableInteractionSource() }
+            val isFocused by interactionSource.collectIsFocusedAsState()
             
             AnimatedVisibility(
                 visible = true,
@@ -945,24 +909,16 @@ fun SettingsScreen(
                 exit = fadeOut(animationSpec = tween(1200)) + slideOutVertically(animationSpec = tween(1200))
             ) {
                 Card(
+                    onClick = {
+                        if (!isCheckingUpdate) {
+                            checkForUpdates()
+                        }
+                    },
+                    interactionSource = interactionSource,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { 
-                            if (!isCheckingUpdate) {
-                                checkForUpdates()
-                            }
-                        }
-                        .focusable()
-                        .focusRequester(updateCardFocusRequester)
-                        .onKeyEvent { keyEvent ->
-                            if (isSelectKeyUp(keyEvent)) {
-                                if (!isCheckingUpdate) {
-                                    checkForUpdates()
-                                }
-                                true
-                            } else false
-                        },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .tvFocusBorder(isFocused),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isFocused) 8.dp else 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -1019,7 +975,8 @@ fun SettingsScreen(
         
         // Reset to Defaults Card
         item {
-            val focusRequester = remember { FocusRequester() }
+            val interactionSource = remember { MutableInteractionSource() }
+            val isFocused by interactionSource.collectIsFocusedAsState()
             
             AnimatedVisibility(
                 visible = true,
@@ -1027,18 +984,12 @@ fun SettingsScreen(
                 exit = fadeOut(animationSpec = tween(1400)) + slideOutVertically(animationSpec = tween(1400))
             ) {
                 Card(
+                    onClick = { showResetDialog = true },
+                    interactionSource = interactionSource,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showResetDialog = true }
-                        .focusable()
-                        .focusRequester(resetCardFocusRequester)
-                        .onKeyEvent { keyEvent ->
-                            if (isSelectKeyUp(keyEvent)) {
-                                showResetDialog = true
-                                true
-                            } else false
-                        },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .tvFocusBorder(isFocused),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isFocused) 8.dp else 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
@@ -1176,26 +1127,26 @@ fun ThemeModeOption(
     isSelected: Boolean,
     onSelect: (ThemeMode) -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
     
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect(mode) }
-            .focusable()
-            .focusRequester(focusRequester)
-            .onKeyEvent { keyEvent ->
-                if (isSelectKeyUp(keyEvent)) {
-                    onSelect(mode)
-                    true
-                } else false
-            }
-            .padding(vertical = 8.dp),
+            .clip(RoundedCornerShape(8.dp))
+            .tvFocusBorder(isFocused, RoundedCornerShape(8.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) { onSelect(mode) }
+            .padding(vertical = 8.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // onClick = null keeps the RadioButton purely visual so the whole row
+        // is a single focus target for the TV remote.
         RadioButton(
             selected = isSelected,
-            onClick = { onSelect(mode) }
+            onClick = null
         )
         Text(
             text = label,
@@ -1212,7 +1163,8 @@ fun ColorOption(
     onSelect: (Color) -> Unit,
     label: String? = null
 ) {
-    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -1220,17 +1172,17 @@ fun ColorOption(
         Box(
             modifier = Modifier
                 .size(48.dp)
+                .border(
+                    width = if (isFocused) 3.dp else 0.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                    shape = CircleShape
+                )
                 .clip(CircleShape)
                 .background(color)
-                .clickable { onSelect(color) }
-                .focusable()
-                .focusRequester(focusRequester)
-                .onKeyEvent { keyEvent ->
-                    if (isSelectKeyUp(keyEvent)) {
-                        onSelect(color)
-                        true
-                    } else false
-                }
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) { onSelect(color) }
                 .then(
                     if (isSelected) {
                         Modifier.padding(4.dp)
@@ -1348,7 +1300,8 @@ fun ColorOptionButton(
     showBorder: Boolean = false,
     label: String? = null
 ) {
-    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -1356,33 +1309,18 @@ fun ColorOptionButton(
         Box(
             modifier = Modifier
                 .size(32.dp)
+                .border(
+                    width = if (isFocused) 2.dp else 0.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                    shape = RoundedCornerShape(4.dp)
+                )
                 .clip(RoundedCornerShape(4.dp))
-                .background(
-                    if (color == Color.Transparent && showBorder) {
-                        color
-                    } else {
-                        color
-                    }
-                )
-                .then(
-                    if (isSelected) {
-                        Modifier.background(
-                            color = color,
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                    } else {
-                        Modifier
-                    }
-                )
-                .clickable(onClick = onClick)
-                .focusable()
-                .focusRequester(focusRequester)
-                .onKeyEvent { keyEvent ->
-                    if (isSelectKeyUp(keyEvent)) {
-                        onClick()
-                        true
-                    } else false
-                },
+                .background(color)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (isSelected) {
@@ -1419,26 +1357,26 @@ fun FontOption(
     isSelected: Boolean,
     onSelect: (FontType) -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
     
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect(fontType) }
-            .focusable()
-            .focusRequester(focusRequester)
-            .onKeyEvent { keyEvent ->
-                if (isSelectKeyUp(keyEvent)) {
-                    onSelect(fontType)
-                    true
-                } else false
-            }
-            .padding(vertical = 8.dp),
+            .clip(RoundedCornerShape(8.dp))
+            .tvFocusBorder(isFocused, RoundedCornerShape(8.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) { onSelect(fontType) }
+            .padding(vertical = 8.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // onClick = null keeps the RadioButton purely visual so the whole row
+        // is a single focus target for the TV remote.
         RadioButton(
             selected = isSelected,
-            onClick = { onSelect(fontType) }
+            onClick = null
         )
         Text(
             text = label,

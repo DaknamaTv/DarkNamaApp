@@ -1,6 +1,11 @@
 package com.dark.darknama.screens
 
 import android.content.Context
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -56,18 +61,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -93,18 +93,13 @@ fun SearchScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
     val isTv = remember { DeviceUtils.isTv(context) }
-    var isSearchFieldFocused by remember { mutableStateOf(false) }
     
-    // Request focus when the screen is first displayed to ensure keyboard opens on TV
+    // Request focus when the screen is first displayed (mobile only; on TV the
+    // native EditText handles its own focus and IME)
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-        // On Android TV the soft keyboard does not open automatically when a
-        // TextField gains focus - explicitly request it.
-        if (isTv) {
-            kotlinx.coroutines.delay(300)
-            keyboardController?.show()
+        if (!isTv) {
+            focusRequester.requestFocus()
         }
     }
     
@@ -131,96 +126,86 @@ fun SearchScreen(
         Spacer(modifier = Modifier.height(8.dp))
         
         // Search bar
-        TextField(
-            value = viewModel.searchQuery,
-            onValueChange = { viewModel.updateSearchQuery(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester)
-                .onFocusChanged { focusState ->
-                    isSearchFieldFocused = focusState.isFocused
-                    // Open the soft keyboard whenever the field gains focus on TV
-                    if (focusState.isFocused && isTv) {
-                        keyboardController?.show()
-                    }
-                }
-                .onKeyEvent { keyEvent ->
-                    // On Android TV pressing OK (D-pad center / Enter) on the field
-                    // must open the on-screen keyboard for typing.
-                    if (keyEvent.type == KeyEventType.KeyUp &&
-                        (keyEvent.key == Key.DirectionCenter ||
-                            keyEvent.key == Key.Enter ||
-                            keyEvent.key == Key.NumPadEnter)
-                    ) {
-                        focusRequester.requestFocus()
-                        keyboardController?.show()
-                        true
-                    } else {
-                        false
-                    }
-                }
-                .clickable { 
-                    // Ensure keyboard opens when clicking on the TextField
-                    focusRequester.requestFocus()
-                    keyboardController?.show()
-                },
-            placeholder = { 
-                Text(
-                    text = stringResource(R.string.search_placeholder),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ) 
-            },
-            leadingIcon = {
-                IconButton(onClick = { 
-                    // Trigger search when clicking search icon
+        if (isTv) {
+            // On Android TV, the Compose TextField does not integrate correctly
+            // with the TV IME: D-pad events leave the on-screen keyboard and move
+            // focus back to the app. A native EditText integrates properly with
+            // the leanback keyboard, so we use one via AndroidView on TV.
+            TvSearchField(
+                query = viewModel.searchQuery,
+                placeholder = stringResource(R.string.search_placeholder),
+                onQueryChange = { viewModel.updateSearchQuery(it) },
+                onSearch = {
                     if (viewModel.searchQuery.isNotEmpty()) {
                         viewModel.triggerSearch()
-                        focusManager.clearFocus()
                     }
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
-            },
-            trailingIcon = {
-                if (viewModel.searchQuery.isNotEmpty()) {
+            )
+        } else {
+            TextField(
+                value = viewModel.searchQuery,
+                onValueChange = { viewModel.updateSearchQuery(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                placeholder = { 
+                    Text(
+                        text = stringResource(R.string.search_placeholder),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ) 
+                },
+                leadingIcon = {
                     IconButton(onClick = { 
-                        viewModel.clearSearch()
-                        focusManager.clearFocus() // Dismiss keyboard when clearing search
+                        // Trigger search when clicking search icon
+                        if (viewModel.searchQuery.isNotEmpty()) {
+                            viewModel.triggerSearch()
+                            focusManager.clearFocus()
+                        }
                     }) {
                         Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear",
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    // Trigger search when pressing Enter
+                },
+                trailingIcon = {
                     if (viewModel.searchQuery.isNotEmpty()) {
-                        viewModel.triggerSearch()
+                        IconButton(onClick = { 
+                            viewModel.clearSearch()
+                            focusManager.clearFocus() // Dismiss keyboard when clearing search
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                    focusManager.clearFocus()
-                }
-            ),
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            ),
-            shape = RoundedCornerShape(24.dp),
-            singleLine = true
-        )
+                },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        // Trigger search when pressing Enter
+                        if (viewModel.searchQuery.isNotEmpty()) {
+                            viewModel.triggerSearch()
+                        }
+                        focusManager.clearFocus()
+                    }
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+                shape = RoundedCornerShape(24.dp),
+                singleLine = true
+            )
+        }
         
         // Country stories section - only visible when no search has been performed
         if (!viewModel.hasSearched) {
@@ -352,6 +337,98 @@ fun SearchScreen(
             }
         }
     }
+}
+
+/**
+ * Native EditText based search field for Android TV.
+ *
+ * The Compose TextField does not integrate correctly with the leanback IME:
+ * while the on-screen keyboard is open, D-pad navigation events escape the
+ * keyboard and move focus around the underlying app. A classic EditText
+ * participates in the native View focus system, so the TV keyboard keeps
+ * D-pad events for itself until the user confirms/dismisses it.
+ */
+@Composable
+private fun TvSearchField(
+    query: String,
+    placeholder: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit
+) {
+    val containerColor = MaterialTheme.colorScheme.surfaceVariant.toArgb()
+    val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
+    val hintColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+    val focusedStrokeColor = MaterialTheme.colorScheme.primary.toArgb()
+
+    AndroidView(
+        modifier = Modifier.fillMaxWidth(),
+        factory = { ctx ->
+            EditText(ctx).apply {
+                hint = placeholder
+                setText(query)
+                isSingleLine = true
+                inputType = InputType.TYPE_CLASS_TEXT
+                imeOptions = EditorInfo.IME_ACTION_SEARCH or
+                    EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                isFocusable = true
+                isFocusableInTouchMode = true
+                setTextColor(textColor)
+                setHintTextColor(hintColor)
+                textSize = 16f
+                val density = ctx.resources.displayMetrics.density
+                val padH = (20 * density).toInt()
+                val padV = (14 * density).toInt()
+                setPadding(padH, padV, padH, padV)
+
+                fun buildBackground(focused: Boolean) =
+                    android.graphics.drawable.GradientDrawable().apply {
+                        cornerRadius = 24 * density
+                        setColor(containerColor)
+                        if (focused) {
+                            setStroke((2 * density).toInt(), focusedStrokeColor)
+                        }
+                    }
+
+                background = buildBackground(false)
+                setOnFocusChangeListener { _, hasFocus ->
+                    background = buildBackground(hasFocus)
+                }
+
+                addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(
+                        s: CharSequence?, start: Int, count: Int, after: Int
+                    ) {}
+
+                    override fun onTextChanged(
+                        s: CharSequence?, start: Int, before: Int, count: Int
+                    ) {}
+
+                    override fun afterTextChanged(s: Editable?) {
+                        onQueryChange(s?.toString() ?: "")
+                    }
+                })
+
+                setOnEditorActionListener { _, actionId, _ ->
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                        actionId == EditorInfo.IME_ACTION_DONE
+                    ) {
+                        onSearch()
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+        },
+        update = { editText ->
+            // Keep the EditText in sync when the query is changed externally
+            // (e.g. clear search) without disturbing the cursor while typing.
+            if (editText.text.toString() != query) {
+                editText.setText(query)
+                editText.setSelection(query.length)
+            }
+        }
+    )
 }
 
 @Composable
