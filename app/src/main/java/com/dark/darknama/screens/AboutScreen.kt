@@ -103,6 +103,20 @@ fun AboutScreen(navController: NavController?) {
                 fontWeight = FontWeight.Bold
             )
             
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // App version (matches the release/tag version used by the CI build)
+            Text(
+                text = stringResource(
+                    R.string.app_version,
+                    com.dark.darknama.BuildConfig.VERSION_NAME,
+                    com.dark.darknama.BuildConfig.VERSION_CODE
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            
             Spacer(modifier = Modifier.height(32.dp))
             
             // Developer Info

@@ -11,6 +11,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -112,6 +113,13 @@ fun appTypography(fontFamily: FontFamily?): androidx.compose.material3.Typograph
     )
 }
 
+/**
+ * Picks black or white for text/icons drawn on top of [color] so the
+ * result always stays readable (important for the light/yellow swatches).
+ */
+private fun contrastingOn(color: Color): Color =
+    if (color.luminance() > 0.5f) Color.Black else Color.White
+
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
@@ -168,47 +176,48 @@ fun DarkNamaTheme(
     // Load font family based on font settings
     val fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
     
-    val colorScheme = when {
-        themeSettings.primaryColor != defaultPrimaryColor -> {
-            // Custom colors - using the same color for primary and secondary since we removed secondary color setting
-            if (darkTheme) {
-                darkColorScheme(
-                    primary = themeSettings.primaryColor,
-                    secondary = themeSettings.primaryColor,
-                    tertiary = Pink80,
-                    background = Color(0xFF121212),
-                    surface = Color(0xFF1E1E1E),
-                    surfaceVariant = Color(0xFF2D2D2D),
-                    onPrimary = Color.White,
-                    onSecondary = Color.White,
-                    onTertiary = Color.White,
-                    onBackground = Color.White,
-                    onSurface = Color.White,
-                    onSurfaceVariant = Color(0xFFE0E0E0)
-                )
-            } else {
-                lightColorScheme(
-                    primary = themeSettings.primaryColor,
-                    secondary = themeSettings.primaryColor,
-                    tertiary = Pink40,
-                    background = Color(0xFFFFFBFE),
-                    surface = Color(0xFFFFFBFE),
-                    surfaceVariant = Color(0xFFE7E0EC),
-                    onPrimary = Color.White,
-                    onSecondary = Color.White,
-                    onTertiary = Color.White,
-                    onBackground = Color(0xFF1C1B1F),
-                    onSurface = Color(0xFF1C1B1F),
-                    onSurfaceVariant = Color(0xFF49454F)
-                )
-            }
-        }
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    // The colour scheme is always derived from the user's selected primary
+    // colour (including the built-in "Default" purple).
+    //
+    // NOTE: previously, picking the default colour fell through to Android 12+
+    // dynamic (wallpaper-based) colours, which made the "Default theme" option
+    // look random / broken. The dynamic branch has been removed so the default
+    // theme is now deterministic and matches the app's brand colour.
+    val primary = themeSettings.primaryColor
+    val colorScheme = if (darkTheme) {
+        darkColorScheme(
+            primary = primary,
+            onPrimary = contrastingOn(primary),
+            primaryContainer = primary.copy(alpha = 0.30f),
+            onPrimaryContainer = Color.White,
+            secondary = primary,
+            onSecondary = contrastingOn(primary),
+            tertiary = Pink80,
+            background = Color(0xFF121212),
+            surface = Color(0xFF1E1E1E),
+            surfaceVariant = Color(0xFF2D2D2D),
+            onTertiary = Color.White,
+            onBackground = Color.White,
+            onSurface = Color.White,
+            onSurfaceVariant = Color(0xFFE0E0E0)
+        )
+    } else {
+        lightColorScheme(
+            primary = primary,
+            onPrimary = contrastingOn(primary),
+            primaryContainer = primary.copy(alpha = 0.20f),
+            onPrimaryContainer = Color(0xFF1C1B1F),
+            secondary = primary,
+            onSecondary = contrastingOn(primary),
+            tertiary = Pink40,
+            background = Color(0xFFFFFBFE),
+            surface = Color(0xFFFFFBFE),
+            surfaceVariant = Color(0xFFE7E0EC),
+            onTertiary = Color.White,
+            onBackground = Color(0xFF1C1B1F),
+            onSurface = Color(0xFF1C1B1F),
+            onSurfaceVariant = Color(0xFF49454F)
+        )
     }
     
     val view = LocalView.current
@@ -216,7 +225,11 @@ fun DarkNamaTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            // Light status-bar icons must be used on a LIGHT status bar, so the
+            // flag depends on the brightness of the primary colour, not on the
+            // theme mode (this was inverted before).
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
+                colorScheme.primary.luminance() > 0.5f
         }
     }
 

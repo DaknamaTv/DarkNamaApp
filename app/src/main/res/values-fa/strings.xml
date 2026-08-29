@@ -28,6 +28,12 @@
     <string name="tv_vpn_help_title">راهنمای پخش</string>
     <string name="tv_vpn_help_message">اگر شبکه‌ای پخش نشد، لطفاً از VPN استفاده کنید و دوباره امتحان کنید.</string>
     <string name="ok">باشه</string>
+    <!-- علاقه‌مندی‌های تلویزیون -->
+    <string name="tv_favorites">علاقه‌مندی‌ها</string>
+    <string name="tv_add_favorite">افزودن به علاقه‌مندی‌ها</string>
+    <string name="tv_remove_favorite">حذف از علاقه‌مندی‌ها</string>
+    <string name="tv_no_favorites">هنوز شبکه‌ای به علاقه‌مندی‌ها اضافه نشده</string>
+    <string name="tv_no_favorites_hint">برای افزودن، روی ستاره‌ی هر شبکه بزنید</string>
 
     <!-- Settings screen -->
     <string name="theme_settings">تنظیمات تم</string>
@@ -49,6 +55,21 @@
     <string name="select_font">انتخاب فونت</string>
     <string name="font_system_default">پیش‌فرض سیستم</string>
     <string name="font_vazirmatn">وزیرمتن</string>
+    <string name="font_vazirmatn_desc">پیشنهادی برای متن فارسی</string>
+    <string name="font_preview">پیش‌نمایش</string>
+    <string name="font_preview_fa">دارک‌نما - تماشای فیلم و سریال</string>
+    <string name="font_preview_en">DarkNama — watch movies &amp; series</string>
+    <!-- صفحه‌های تنظیمات -->
+    <string name="theme_use_default_color">استفاده از رنگ پیش‌فرض</string>
+    <string name="theme_color_hint">رنگ انتخاب‌شده برای دکمه‌ها، هایلایت‌ها و نوار بالای برنامه استفاده می‌شود.</string>
+    <string name="player_seek_section">جلو/عقب بردن</string>
+    <string name="player_settings_summary">جلو/عقب %1$d ثانیه · زیرنویس %2$dsp</string>
+    <string name="subtitle_preview">پیش‌نمایش</string>
+    <string name="subtitle_preview_text">این یک زیرنویس نمونه است</string>
+    <string name="subtitle_size_hint">این اندازه روی زیرنویس داخل پخش‌کننده اعمال می‌شود.</string>
+    <string name="app_version">نسخه %1$s (بیلد %2$d)</string>
+    <string name="current_version">نسخه فعلی: %1$s</string>
+    <string name="checking_updates">در حال بررسی…</string>
     <string name="episodes_cache">حافظه قسمت‌های سریال</string>
     <string name="cache_size">حجم حافظه: %1$s</string>
     <string name="cache_empty">خالی</string>

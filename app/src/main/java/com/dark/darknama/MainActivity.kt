@@ -118,6 +118,9 @@ fun MainScreen(
         currentRoute?.startsWith("single_series") == true -> AppScreens.SingleSeries
         currentRoute?.startsWith("country") == true -> AppScreens.Country
         currentRoute == "favorites" -> AppScreens.Favorites
+        currentRoute == AppScreens.ThemeSettings.route -> AppScreens.ThemeSettings
+        currentRoute == AppScreens.PlayerSettings.route -> AppScreens.PlayerSettings
+        currentRoute == AppScreens.FontSettings.route -> AppScreens.FontSettings
         currentRoute == "settings" -> AppScreens.Settings
         currentRoute == "about" -> AppScreens.About
         else -> AppScreens.screens.find { it.route == currentRoute } ?: AppScreens.Movies

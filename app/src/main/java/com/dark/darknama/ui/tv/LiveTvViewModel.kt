@@ -1,13 +1,17 @@
 package com.dark.darknama.ui.tv
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.dark.darknama.data.model.FavoriteChannel
 import com.dark.darknama.data.model.TvBrowseMode
 import com.dark.darknama.data.model.TvChannel
+import com.dark.darknama.data.model.favoriteKey
 import com.dark.darknama.data.repository.IptvRepository
+import com.dark.darknama.utils.StorageUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -18,8 +22,9 @@ import kotlinx.coroutines.launch
  *  - PERSIAN  (default): Persian language channels (languages/fas.m3u)
  *  - COUNTRY : channels of a selected country (index.country.m3u) — with flags
  *  - CATEGORY: channels of a selected category (index.m3u)
+ *  - FAVORITES: channels the user starred (stored on device)
  */
-class LiveTvViewModel : ViewModel() {
+class LiveTvViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = IptvRepository()
     private var loadJob: Job? = null
 
@@ -69,9 +74,59 @@ class LiveTvViewModel : ViewModel() {
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    /** Keys (id|url) of all favorite channels - used to render the star state */
+    var favoriteKeys by mutableStateOf<Set<String>>(emptySet())
+        private set
+
+    /** The user's favorite channels (newest first) */
+    var favoriteChannels by mutableStateOf<List<FavoriteChannel>>(emptyList())
+        private set
+
     init {
+        reloadFavorites()
         loadChannels()
     }
+
+    // ------------------------------------------------------------------
+    // Favorites
+    // ------------------------------------------------------------------
+
+    /** Re-reads favorites from disk into memory */
+    fun reloadFavorites() {
+        val stored = StorageUtils.loadFavoriteChannels(getApplication())
+        favoriteChannels = stored
+        favoriteKeys = stored.map { it.key }.toSet()
+    }
+
+    fun isFavorite(channel: TvChannel): Boolean = favoriteKeys.contains(channel.favoriteKey)
+
+    /** Adds/removes a channel from the favorites list */
+    fun toggleFavorite(channel: TvChannel) {
+        StorageUtils.toggleFavoriteChannel(getApplication(), FavoriteChannel.from(channel))
+        reloadFavorites()
+        // Keep the favorites view in sync while the user is browsing it
+        if (browseMode == TvBrowseMode.FAVORITES) {
+            allChannels = favoriteChannels.map { it.toTvChannel() }
+            applyFilters()
+        }
+    }
+
+    /** Show only the favorite channels */
+    fun selectFavorites() {
+        loadJob?.cancel()
+        browseMode = TvBrowseMode.FAVORITES
+        selectedGroup = null
+        selectedPersianCategory = null
+        errorMessage = null
+        isLoading = false
+        reloadFavorites()
+        allChannels = favoriteChannels.map { it.toTvChannel() }
+        applyFilters()
+    }
+
+    // ------------------------------------------------------------------
+    // Browse modes
+    // ------------------------------------------------------------------
 
     /** Reset to the default Persian channel list */
     fun selectPersianDefault() {
@@ -114,7 +169,13 @@ class LiveTvViewModel : ViewModel() {
         applyFilters()
     }
 
-    fun retry() = loadChannels(forceRefresh = true)
+    fun retry() {
+        if (browseMode == TvBrowseMode.FAVORITES) {
+            selectFavorites()
+        } else {
+            loadChannels(forceRefresh = true)
+        }
+    }
 
     /** Loads country names for the picker (cached playlist reused for channels) */
     fun ensureCountryListLoaded() {
@@ -160,6 +221,10 @@ class LiveTvViewModel : ViewModel() {
     }
 
     fun loadChannels(forceRefresh: Boolean = false) {
+        if (browseMode == TvBrowseMode.FAVORITES) {
+            selectFavorites()
+            return
+        }
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             isLoading = true
@@ -169,6 +234,7 @@ class LiveTvViewModel : ViewModel() {
                     TvBrowseMode.PERSIAN -> IptvRepository.PERSIAN_PLAYLIST_URL
                     TvBrowseMode.COUNTRY -> IptvRepository.COUNTRY_PLAYLIST_URL
                     TvBrowseMode.CATEGORY -> IptvRepository.CATEGORY_PLAYLIST_URL
+                    TvBrowseMode.FAVORITES -> IptvRepository.PERSIAN_PLAYLIST_URL // unreachable
                 }
                 val result = repository.getChannels(url, forceRefresh)
                 allChannels = result
@@ -218,6 +284,9 @@ class LiveTvViewModel : ViewModel() {
                         channel.group.split(';').any { it.trim() == category }
                     }
                 }
+            }
+            TvBrowseMode.FAVORITES -> {
+                // Favorites are already the full working set
             }
         }
 

@@ -36,6 +36,8 @@ import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -77,6 +79,7 @@ import com.dark.darknama.VideoPlayerActivity
 import com.dark.darknama.components.SettingsIconButton
 import com.dark.darknama.data.model.TvBrowseMode
 import com.dark.darknama.data.model.TvChannel
+import com.dark.darknama.data.model.favoriteKey
 import com.dark.darknama.data.repository.IptvRepository
 import com.dark.darknama.ui.tv.LiveTvViewModel
 import com.dark.darknama.utils.DeviceUtils
@@ -153,12 +156,44 @@ fun LiveTvScreen(
         }
 
         // ---------- Browse mode selector ----------
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+        // Horizontally scrollable so the extra "Favorites" chip always fits,
+        // including on Android TV where the sidebar takes horizontal space.
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+          item {
+            // Favorites (starred channels)
+            FilterChip(
+                selected = viewModel.browseMode == TvBrowseMode.FAVORITES,
+                onClick = { viewModel.selectFavorites() },
+                leadingIcon = {
+                    Icon(
+                        imageVector = if (viewModel.browseMode == TvBrowseMode.FAVORITES)
+                            Icons.Default.Star
+                        else
+                            Icons.Outlined.StarBorder,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                },
+                label = {
+                    Text(
+                        text = stringResource(R.string.tv_favorites) +
+                            if (viewModel.favoriteChannels.isNotEmpty())
+                                " (${viewModel.favoriteChannels.size})"
+                            else "",
+                        maxLines = 1
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    selectedLabelColor = MaterialTheme.colorScheme.primary
+                )
+            )
+          }
+          item {
             // Persian (default)
             FilterChip(
                 selected = viewModel.browseMode == TvBrowseMode.PERSIAN,
@@ -174,7 +209,8 @@ fun LiveTvScreen(
                     selectedLabelColor = MaterialTheme.colorScheme.primary
                 )
             )
-
+          }
+          item {
             // Country picker
             FilterChip(
                 selected = viewModel.browseMode == TvBrowseMode.COUNTRY,
@@ -204,7 +240,8 @@ fun LiveTvScreen(
                     selectedLabelColor = MaterialTheme.colorScheme.primary
                 )
             )
-
+          }
+          item {
             // Category picker
             FilterChip(
                 selected = viewModel.browseMode == TvBrowseMode.CATEGORY,
@@ -234,6 +271,7 @@ fun LiveTvScreen(
                     selectedLabelColor = MaterialTheme.colorScheme.primary
                 )
             )
+          }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -366,11 +404,39 @@ fun LiveTvScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = stringResource(R.string.tv_no_channels),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (viewModel.browseMode == TvBrowseMode.FAVORITES) {
+                        // Dedicated empty state explaining how to add favorites
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.StarBorder,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = stringResource(R.string.tv_no_favorites),
+                                style = MaterialTheme.typography.titleMedium,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = stringResource(R.string.tv_no_favorites_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(R.string.tv_no_channels),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
             else -> {
@@ -386,6 +452,8 @@ fun LiveTvScreen(
                         ChannelCard(
                             channel = channel,
                             showCountryFlag = viewModel.browseMode == TvBrowseMode.COUNTRY,
+                            isFavorite = viewModel.favoriteKeys.contains(channel.favoriteKey),
+                            onToggleFavorite = { viewModel.toggleFavorite(channel) },
                             onClick = {
                                 VideoPlayerActivity.startLiveTv(
                                     context = context,
@@ -469,15 +537,23 @@ fun LiveTvScreen(
 /**
  * A single channel card: logo + name (+ country flag / group).
  * Uses Material3 Card(onClick) so it is focusable and clickable with a TV remote.
+ *
+ * A star button is drawn on top of the logo:
+ *  - hollow star  -> channel is NOT a favorite (tap to add)
+ *  - filled star  -> channel IS a favorite (tap to remove)
  */
 @Composable
 private fun ChannelCard(
     channel: TvChannel,
     showCountryFlag: Boolean,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val starInteractionSource = remember { MutableInteractionSource() }
+    val isStarFocused by starInteractionSource.collectIsFocusedAsState()
 
     Card(
         onClick = onClick,
@@ -532,6 +608,34 @@ private fun ChannelCard(
                         contentDescription = channel.name,
                         tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                         modifier = Modifier.size(36.dp)
+                    )
+                }
+
+                // ---- Favorite (star) toggle, drawn above the logo ----
+                IconButton(
+                    onClick = onToggleFavorite,
+                    interactionSource = starInteractionSource,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.45f))
+                        .border(
+                            width = if (isStarFocused) 2.dp else 0.dp,
+                            color = if (isStarFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Star else Icons.Outlined.StarBorder,
+                        contentDescription = stringResource(
+                            if (isFavorite) R.string.tv_remove_favorite else R.string.tv_add_favorite
+                        ),
+                        tint = if (isFavorite)
+                            Color(0xFFFFC107) // amber for a starred channel
+                        else
+                            Color.White.copy(alpha = 0.9f),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
