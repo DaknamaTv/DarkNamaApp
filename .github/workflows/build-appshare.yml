@@ -79,25 +79,33 @@ jobs:
           echo "storeFile=keystore.jks" >> key.properties
         continue-on-error: true
 
-      - name: Build APK
-        run: |
-          ./gradlew assembleRelease --stacktrace -x lint
-
-      - name: Rename APK
-        run: |
-          mkdir -p release
-          cp app/build/outputs/apk/release/app-universal-release.apk release/DarkNama-universal.apk
-
+      # NOTE: this step MUST run before "Build APK" so the tag can be
+      # injected into the APK as versionName / versionCode.
       - name: Get tag name
         id: get_tag
         run: |
           if [[ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]]; then
-            TAG_NAME=${{ github.event.inputs.tag }}
+            TAG_NAME="${{ github.event.inputs.tag }}"
           else
-            TAG_NAME=${GITHUB_REF#refs/tags/}
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
           fi
+          APP_VERSION_NAME="${TAG_NAME#v}"
+          APP_VERSION_NAME="${APP_VERSION_NAME#V}"
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          echo "APP_VERSION_NAME=$APP_VERSION_NAME" >> $GITHUB_ENV
           echo "Tag name: $TAG_NAME"
+          echo "App version name: $APP_VERSION_NAME"
+
+      - name: Build APK
+        run: |
+          ./gradlew assembleRelease --stacktrace -x lint \
+            -PappVersionName="${APP_VERSION_NAME}"
+
+      - name: Rename APK
+        run: |
+          mkdir -p release
+          cp app/build/outputs/apk/release/app-universal-release.apk \
+             release/DarkNama-${TAG_NAME}-universal.apk
 
       - name: Create Release
         id: create_release
@@ -108,17 +116,19 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            release/DarkNama-universal.apk
+            release/DarkNama-${{ env.TAG_NAME }}-universal.apk
           body: |
             ## DarkNama Release ${{ env.TAG_NAME }}
-            
+
+            **App version:** ${{ env.APP_VERSION_NAME }}
+
             ### What's New
             - Modernized UI with enhanced user experience
             - Improved performance and stability
             - New features and bug fixes
-            
+
             ### Download Options
-            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/DarkNama-universal.apk) - Compatible with all devices
+            - [Universal APK (all architectures)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG_NAME }}/DarkNama-${{ env.TAG_NAME }}-universal.apk) - Compatible with all devices
 
             ### Installation
             1. Download the appropriate APK file for your device
