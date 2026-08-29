@@ -58,12 +58,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -99,6 +100,18 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.net.URL
+
+/**
+ * Returns true only for a "select/confirm" KeyUp event so that actions are not
+ * triggered twice (KeyDown + KeyUp) and the Android TV remote's D-pad center
+ * button (Key.DirectionCenter) is handled properly.
+ */
+private fun isSelectKeyUp(keyEvent: androidx.compose.ui.input.key.KeyEvent): Boolean =
+    keyEvent.type == KeyEventType.KeyUp &&
+        (keyEvent.key == Key.Enter ||
+            keyEvent.key == Key.NumPadEnter ||
+            keyEvent.key == Key.Spacebar ||
+            keyEvent.key == Key.DirectionCenter)
 
 @Serializable
 data class GitHubRelease(
@@ -213,10 +226,10 @@ fun SettingsScreen(
         try {
             StorageUtils.clearAllWatchedEpisodes(context)
             watchedEpisodesCacheSize = 0L
-            Toast.makeText(context, "Watched episodes cache cleared", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.watched_cache_cleared), Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e("SettingsScreen", "Error clearing watched episodes", e)
-            Toast.makeText(context, "Error clearing cache", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.error_clearing_cache), Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -269,20 +282,20 @@ fun SettingsScreen(
                             latestVersionUrl = latestRelease.html_url
                             showUpdateDialog = true
                         } else {
-                            Toast.makeText(context, "App is up to date", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.app_up_to_date), Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
                         isCheckingUpdate = false
-                        Toast.makeText(context, "Unable to check for updates", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.unable_check_updates), Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 Log.e("SettingsScreen", "Error checking for updates", e)
                 withContext(Dispatchers.Main) {
                     isCheckingUpdate = false
-                    Toast.makeText(context, "Error checking for updates", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.error_check_updates), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -327,7 +340,7 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Language,
-                            contentDescription = "Change Language",
+                            contentDescription = stringResource(R.string.change_language),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -343,7 +356,7 @@ fun SettingsScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Favorite,
-                                contentDescription = "Favorites",
+                                contentDescription = stringResource(R.string.favorites),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -368,17 +381,11 @@ fun SettingsScreen(
                         .clickable { isExpanded = !isExpanded }
                         .focusable()
                         .focusRequester(themeCardFocusRequester)
-                        .focusProperties {
-                            down = videoCardFocusRequester
-                        }
                         .onKeyEvent { keyEvent ->
-                            when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    isExpanded = !isExpanded
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
-                            }
+                            if (isSelectKeyUp(keyEvent)) {
+                                isExpanded = !isExpanded
+                                true
+                            } else false
                         },
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
@@ -396,7 +403,7 @@ fun SettingsScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "Theme Settings",
+                                text = stringResource(R.string.theme_settings),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
@@ -413,14 +420,14 @@ fun SettingsScreen(
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 // Theme Mode Section
                                 Text(
-                                    text = "Theme Mode",
+                                    text = stringResource(R.string.theme_mode),
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 
                                 ThemeModeOption(
                                     mode = ThemeMode.LIGHT,
-                                    label = "Light",
+                                    label = stringResource(R.string.theme_light),
                                     isSelected = themeSettings.themeMode == ThemeMode.LIGHT,
                                     onSelect = { mode ->
                                         val newSettings = themeSettings.copy(themeMode = mode)
@@ -430,7 +437,7 @@ fun SettingsScreen(
                                 
                                 ThemeModeOption(
                                     mode = ThemeMode.DARK,
-                                    label = "Dark",
+                                    label = stringResource(R.string.theme_dark),
                                     isSelected = themeSettings.themeMode == ThemeMode.DARK,
                                     onSelect = { mode ->
                                         val newSettings = themeSettings.copy(themeMode = mode)
@@ -440,7 +447,7 @@ fun SettingsScreen(
                                 
                                 ThemeModeOption(
                                     mode = ThemeMode.SYSTEM,
-                                    label = "System Default",
+                                    label = stringResource(R.string.theme_system),
                                     isSelected = themeSettings.themeMode == ThemeMode.SYSTEM,
                                     onSelect = { mode ->
                                         val newSettings = themeSettings.copy(themeMode = mode)
@@ -452,7 +459,7 @@ fun SettingsScreen(
                                 
                                 // Primary Color Section
                                 Text(
-                                    text = "Primary Color",
+                                    text = stringResource(R.string.primary_color),
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
@@ -500,7 +507,7 @@ fun SettingsScreen(
                                                 val newSettings = themeSettings.copy(primaryColor = selectedColor)
                                                 updateThemeSettings(newSettings)
                                             },
-                                            label = "Default"
+                                            label = stringResource(R.string.color_default)
                                         )
                                     }
                                 }
@@ -537,18 +544,11 @@ fun SettingsScreen(
                         .clickable { isExpanded = !isExpanded }
                         .focusable()
                         .focusRequester(videoCardFocusRequester)
-                        .focusProperties {
-                            up = themeCardFocusRequester
-                            down = aboutCardFocusRequester
-                        }
                         .onKeyEvent { keyEvent ->
-                            when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    isExpanded = !isExpanded
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
-                            }
+                            if (isSelectKeyUp(keyEvent)) {
+                                isExpanded = !isExpanded
+                                true
+                            } else false
                         },
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
@@ -566,7 +566,7 @@ fun SettingsScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "Video Player Settings",
+                                text = stringResource(R.string.video_player_settings),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
@@ -582,7 +582,7 @@ fun SettingsScreen(
                         AnimatedVisibility(visible = isExpanded) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
-                                    text = "Seek Time: ${videoPlayerSettings.seekTimeSeconds} seconds",
+                                    text = stringResource(R.string.seek_time, videoPlayerSettings.seekTimeSeconds),
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
@@ -598,18 +598,19 @@ fun SettingsScreen(
                                         .fillMaxWidth()
                                         .focusable()
                                         .onKeyEvent { keyEvent ->
+                                            if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
                                             when (keyEvent.key) {
                                                 Key.DirectionLeft -> {
-                                                    val newValue = (videoPlayerSettings.seekTimeSeconds - 1).coerceIn(5, 30).toFloat()
-                                                    updateVideoPlayerSettings(videoPlayerSettings.copy(seekTimeSeconds = newValue.toInt()))
-                                                    true // Handled
+                                                    val newValue = (videoPlayerSettings.seekTimeSeconds - 1).coerceIn(5, 30)
+                                                    updateVideoPlayerSettings(videoPlayerSettings.copy(seekTimeSeconds = newValue))
+                                                    true
                                                 }
                                                 Key.DirectionRight -> {
-                                                    val newValue = (videoPlayerSettings.seekTimeSeconds + 1).coerceIn(5, 30).toFloat()
-                                                    updateVideoPlayerSettings(videoPlayerSettings.copy(seekTimeSeconds = newValue.toInt()))
-                                                    true // Handled
+                                                    val newValue = (videoPlayerSettings.seekTimeSeconds + 1).coerceIn(5, 30)
+                                                    updateVideoPlayerSettings(videoPlayerSettings.copy(seekTimeSeconds = newValue))
+                                                    true
                                                 }
-                                                else -> false // Let default handling occur
+                                                else -> false
                                             }
                                         }
                                 )
@@ -618,14 +619,14 @@ fun SettingsScreen(
                                 
                                 // Subtitle Settings Section
                                 Text(
-                                    text = "Subtitle Settings",
+                                    text = stringResource(R.string.subtitle_settings),
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
                                 
                                 // Text color setting
                                 SubtitleColorSetting(
-                                    title = "Text Color",
+                                    title = stringResource(R.string.subtitle_text_color),
                                     currentColor = Color(subtitleSettings.textColor),
                                     onColorSelected = { color ->
                                         updateSubtitleSettings(subtitleSettings.copy(textColor = color.toArgb()))
@@ -637,7 +638,7 @@ fun SettingsScreen(
                                 
                                 // Border color setting (Background)
                                 SubtitleColorSetting(
-                                    title = "Background Color",
+                                    title = stringResource(R.string.subtitle_background_color),
                                     currentColor = Color(subtitleSettings.borderColor),
                                     onColorSelected = { color ->
                                         updateSubtitleSettings(subtitleSettings.copy(borderColor = color.toArgb()))
@@ -650,7 +651,7 @@ fun SettingsScreen(
                                 
                                 // Text size setting
                                 Text(
-                                    text = "Text Size: ${subtitleSettings.textSize.toInt()}sp",
+                                    text = stringResource(R.string.subtitle_text_size, subtitleSettings.textSize.toInt()),
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
@@ -665,18 +666,19 @@ fun SettingsScreen(
                                         .fillMaxWidth()
                                         .focusable()
                                         .onKeyEvent { keyEvent ->
+                                            if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
                                             when (keyEvent.key) {
                                                 Key.DirectionLeft -> {
                                                     val newValue = (subtitleSettings.textSize - 1).coerceIn(10f, 50f)
                                                     updateSubtitleSettings(subtitleSettings.copy(textSize = newValue))
-                                                    true // Handled
+                                                    true
                                                 }
                                                 Key.DirectionRight -> {
                                                     val newValue = (subtitleSettings.textSize + 1).coerceIn(10f, 50f)
                                                     updateSubtitleSettings(subtitleSettings.copy(textSize = newValue))
-                                                    true // Handled
+                                                    true
                                                 }
-                                                else -> false // Let default handling occur
+                                                else -> false
                                             }
                                         }
                                 )
@@ -714,13 +716,10 @@ fun SettingsScreen(
                         .focusable()
                         .focusRequester(remember { FocusRequester() })
                         .onKeyEvent { keyEvent ->
-                            when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    isExpanded = !isExpanded
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
-                            }
+                            if (isSelectKeyUp(keyEvent)) {
+                                isExpanded = !isExpanded
+                                true
+                            } else false
                         },
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
@@ -738,7 +737,7 @@ fun SettingsScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "Font Settings",
+                                text = stringResource(R.string.font_settings),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
@@ -754,14 +753,14 @@ fun SettingsScreen(
                         AnimatedVisibility(visible = isExpanded) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
-                                    text = "Select Font",
+                                    text = stringResource(R.string.select_font),
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
                                 
                                 FontOption(
                                     fontType = FontType.DEFAULT,
-                                    label = "System Default",
+                                    label = stringResource(R.string.font_system_default),
                                     isSelected = fontSettings.fontType == FontType.DEFAULT,
                                     onSelect = { fontType ->
                                         val newSettings = fontSettings.copy(fontType = fontType)
@@ -771,7 +770,7 @@ fun SettingsScreen(
                                 
                                 FontOption(
                                     fontType = FontType.VAZIRMATN,
-                                    label = "Vazirmatn",
+                                    label = stringResource(R.string.font_vazirmatn),
                                     isSelected = fontSettings.fontType == FontType.VAZIRMATN,
                                     onSelect = { fontType ->
                                         val newSettings = fontSettings.copy(fontType = fontType)
@@ -811,13 +810,10 @@ fun SettingsScreen(
                         .focusable()
                         .focusRequester(remember { FocusRequester() })
                         .onKeyEvent { keyEvent ->
-                            when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    showClearWatchedEpisodesDialog = true
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
-                            }
+                            if (isSelectKeyUp(keyEvent)) {
+                                showClearWatchedEpisodesDialog = true
+                                true
+                            } else false
                         },
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
@@ -835,7 +831,7 @@ fun SettingsScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "Series Episodes Cache",
+                                text = stringResource(R.string.episodes_cache),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
@@ -844,7 +840,10 @@ fun SettingsScreen(
                         }
                         
                         Text(
-                            text = "Cache size: ${if (watchedEpisodesCacheSize > 0) "${watchedEpisodesCacheSize} bytes" else "Empty"}",
+                            text = stringResource(
+                                R.string.cache_size,
+                                if (watchedEpisodesCacheSize > 0) stringResource(R.string.cache_bytes, watchedEpisodesCacheSize.toInt()) else stringResource(R.string.cache_empty)
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -852,7 +851,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(4.dp))
                         
                         Text(
-                            text = "Tap to clear all watched episode marks",
+                            text = stringResource(R.string.cache_clear_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -886,18 +885,11 @@ fun SettingsScreen(
                         .clickable { navController?.navigate("about") }
                         .focusable()
                         .focusRequester(aboutCardFocusRequester)
-                        .focusProperties {
-                            up = videoCardFocusRequester
-                            down = updateCardFocusRequester
-                        }
                         .onKeyEvent { keyEvent ->
-                            when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    navController?.navigate("about")
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
-                            }
+                            if (isSelectKeyUp(keyEvent)) {
+                                navController?.navigate("about")
+                                true
+                            } else false
                         },
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
@@ -915,7 +907,7 @@ fun SettingsScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "About",
+                                text = stringResource(R.string.about),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
@@ -924,7 +916,7 @@ fun SettingsScreen(
                         }
                         
                         Text(
-                            text = "Learn more about DarkNama and its developer",
+                            text = stringResource(R.string.about_description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -962,20 +954,13 @@ fun SettingsScreen(
                         }
                         .focusable()
                         .focusRequester(updateCardFocusRequester)
-                        .focusProperties {
-                            up = aboutCardFocusRequester
-                            down = resetCardFocusRequester
-                        }
                         .onKeyEvent { keyEvent ->
-                            when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    if (!isCheckingUpdate) {
-                                        checkForUpdates()
-                                    }
-                                    true // Handled
+                            if (isSelectKeyUp(keyEvent)) {
+                                if (!isCheckingUpdate) {
+                                    checkForUpdates()
                                 }
-                                else -> false // Let default handling occur
-                            }
+                                true
+                            } else false
                         },
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
@@ -993,7 +978,7 @@ fun SettingsScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "Check for Updates",
+                                text = stringResource(R.string.check_updates),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
@@ -1013,7 +998,7 @@ fun SettingsScreen(
                         }
                         
                         Text(
-                            text = "Check for the latest version of the app",
+                            text = stringResource(R.string.check_updates_hint),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1047,17 +1032,11 @@ fun SettingsScreen(
                         .clickable { showResetDialog = true }
                         .focusable()
                         .focusRequester(resetCardFocusRequester)
-                        .focusProperties {
-                            up = updateCardFocusRequester
-                        }
                         .onKeyEvent { keyEvent ->
-                            when (keyEvent.key) {
-                                Key.Enter, Key.Spacebar -> {
-                                    showResetDialog = true
-                                    true // Handled
-                                }
-                                else -> false // Let default handling occur
-                            }
+                            if (isSelectKeyUp(keyEvent)) {
+                                showResetDialog = true
+                                true
+                            } else false
                         },
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
@@ -1075,7 +1054,7 @@ fun SettingsScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "Reset to Defaults",
+                                text = stringResource(R.string.reset_defaults),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier
                                     .padding(start = 8.dp)
@@ -1084,7 +1063,7 @@ fun SettingsScreen(
                         }
                         
                         Text(
-                            text = "Tap to reset all settings to default values",
+                            text = stringResource(R.string.reset_defaults_hint),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1103,10 +1082,10 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
             title = {
-                Text(text = "Reset Settings")
+                Text(text = stringResource(R.string.reset_settings_title))
             },
             text = {
-                Text("Are you sure you want to reset all settings to their default values?")
+                Text(stringResource(R.string.reset_settings_message))
             },
             confirmButton = {
                 TextButton(
@@ -1115,14 +1094,14 @@ fun SettingsScreen(
                         showResetDialog = false
                     }
                 ) {
-                    Text("Reset")
+                    Text(stringResource(R.string.reset))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showResetDialog = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -1133,10 +1112,10 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { showClearWatchedEpisodesDialog = false },
             title = {
-                Text(text = "Clear Watched Episodes")
+                Text(text = stringResource(R.string.clear_watched_title))
             },
             text = {
-                Text("Are you sure you want to clear all watched episode marks? This action cannot be undone.")
+                Text(stringResource(R.string.clear_watched_message))
             },
             confirmButton = {
                 TextButton(
@@ -1145,14 +1124,14 @@ fun SettingsScreen(
                         showClearWatchedEpisodesDialog = false
                     }
                 ) {
-                    Text("Clear All")
+                    Text(stringResource(R.string.clear_all))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showClearWatchedEpisodesDialog = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -1163,10 +1142,10 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { showUpdateDialog = false },
             title = {
-                Text(text = "Update Available")
+                Text(text = stringResource(R.string.update_available_title))
             },
             text = {
-                Text("A new version of the app is available. Would you like to download it now?")
+                Text(stringResource(R.string.update_available_message))
             },
             confirmButton = {
                 TextButton(
@@ -1176,14 +1155,14 @@ fun SettingsScreen(
                         showUpdateDialog = false
                     }
                 ) {
-                    Text("Download")
+                    Text(stringResource(R.string.download))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showUpdateDialog = false }
                 ) {
-                    Text("Later")
+                    Text(stringResource(R.string.later))
                 }
             }
         )
@@ -1206,13 +1185,10 @@ fun ThemeModeOption(
             .focusable()
             .focusRequester(focusRequester)
             .onKeyEvent { keyEvent ->
-                when (keyEvent.key) {
-                    Key.Enter, Key.Spacebar -> {
-                        onSelect(mode)
-                        true // Handled
-                    }
-                    else -> false // Let default handling occur
-                }
+                if (isSelectKeyUp(keyEvent)) {
+                    onSelect(mode)
+                    true
+                } else false
             }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -1250,13 +1226,10 @@ fun ColorOption(
                 .focusable()
                 .focusRequester(focusRequester)
                 .onKeyEvent { keyEvent ->
-                    when (keyEvent.key) {
-                        Key.Enter, Key.Spacebar -> {
-                            onSelect(color)
-                            true // Handled
-                        }
-                        else -> false // Let default handling occur
-                    }
+                    if (isSelectKeyUp(keyEvent)) {
+                        onSelect(color)
+                        true
+                    } else false
                 }
                 .then(
                     if (isSelected) {
@@ -1316,7 +1289,7 @@ fun SubtitleColorSetting(
                         isSelected = currentColor == Color.Transparent,
                         onClick = { onColorSelected(Color.Transparent) },
                         showBorder = true,
-                        label = "Empty"
+                        label = stringResource(R.string.color_empty)
                     )
                 }
                 
@@ -1326,7 +1299,7 @@ fun SubtitleColorSetting(
                         color = Color.Black.copy(alpha = 0.5f),
                         isSelected = currentColor == Color.Black.copy(alpha = 0.5f),
                         onClick = { onColorSelected(Color.Black.copy(alpha = 0.5f)) },
-                        label = "Glass"
+                        label = stringResource(R.string.color_glass)
                     )
                 }
                 
@@ -1405,13 +1378,10 @@ fun ColorOptionButton(
                 .focusable()
                 .focusRequester(focusRequester)
                 .onKeyEvent { keyEvent ->
-                    when (keyEvent.key) {
-                        Key.Enter, Key.Spacebar -> {
-                            onClick()
-                            true // Handled
-                        }
-                        else -> false // Let default handling occur
-                    }
+                    if (isSelectKeyUp(keyEvent)) {
+                        onClick()
+                        true
+                    } else false
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -1458,13 +1428,10 @@ fun FontOption(
             .focusable()
             .focusRequester(focusRequester)
             .onKeyEvent { keyEvent ->
-                when (keyEvent.key) {
-                    Key.Enter, Key.Spacebar -> {
-                        onSelect(fontType)
-                        true // Handled
-                    }
-                    else -> false // Let default handling occur
-                }
+                if (isSelectKeyUp(keyEvent)) {
+                    onSelect(fontType)
+                    true
+                } else false
             }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically

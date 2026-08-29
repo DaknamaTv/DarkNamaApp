@@ -56,10 +56,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -86,10 +93,19 @@ fun SearchScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val isTv = remember { DeviceUtils.isTv(context) }
+    var isSearchFieldFocused by remember { mutableStateOf(false) }
     
     // Request focus when the screen is first displayed to ensure keyboard opens on TV
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+        // On Android TV the soft keyboard does not open automatically when a
+        // TextField gains focus - explicitly request it.
+        if (isTv) {
+            kotlinx.coroutines.delay(300)
+            keyboardController?.show()
+        }
     }
     
     Column(
@@ -121,13 +137,36 @@ fun SearchScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(focusRequester)
+                .onFocusChanged { focusState ->
+                    isSearchFieldFocused = focusState.isFocused
+                    // Open the soft keyboard whenever the field gains focus on TV
+                    if (focusState.isFocused && isTv) {
+                        keyboardController?.show()
+                    }
+                }
+                .onKeyEvent { keyEvent ->
+                    // On Android TV pressing OK (D-pad center / Enter) on the field
+                    // must open the on-screen keyboard for typing.
+                    if (keyEvent.type == KeyEventType.KeyUp &&
+                        (keyEvent.key == Key.DirectionCenter ||
+                            keyEvent.key == Key.Enter ||
+                            keyEvent.key == Key.NumPadEnter)
+                    ) {
+                        focusRequester.requestFocus()
+                        keyboardController?.show()
+                        true
+                    } else {
+                        false
+                    }
+                }
                 .clickable { 
-                    // Ensure keyboard opens when clicking on the TextField on TV
+                    // Ensure keyboard opens when clicking on the TextField
                     focusRequester.requestFocus()
+                    keyboardController?.show()
                 },
             placeholder = { 
                 Text(
-                    text = "Search movies and series...",
+                    text = stringResource(R.string.search_placeholder),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 ) 
             },
@@ -247,7 +286,7 @@ fun SearchScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Please try again",
+                            text = stringResource(R.string.try_again),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -256,7 +295,7 @@ fun SearchScreen(
                             onClick = { viewModel.triggerSearch() },
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            Text("Retry")
+                            Text(stringResource(R.string.retry))
                         }
                     }
                 }
@@ -275,7 +314,7 @@ fun SearchScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No results found",
+                        text = stringResource(R.string.no_results_found),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -298,13 +337,13 @@ fun SearchScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Search for movies and series",
+                            text = stringResource(R.string.search_title),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Enter a keyword to start searching",
+                            text = stringResource(R.string.search_hint_text),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
