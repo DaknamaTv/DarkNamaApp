@@ -416,7 +416,8 @@ fun VideoPlayerScreen(
     var isPlaying by remember { mutableStateOf(true) }
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
-    var showControls by externalShowControls ?: remember { mutableStateOf(true) }
+    val showControlsHolder = externalShowControls ?: remember { mutableStateOf(true) }
+    var showControls by showControlsHolder
     var isSeeking by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf<String?>(null) }
     var isRetrying by remember { mutableStateOf(false) }
@@ -429,7 +430,8 @@ fun VideoPlayerScreen(
     var hasMarkedAsWatched by remember { mutableStateOf(false) }
     
     // Track selection state
-    var showTrackSelectionDialog by externalShowSettingsDialog ?: remember { mutableStateOf(false) }
+    val showTrackSelectionDialogHolder = externalShowSettingsDialog ?: remember { mutableStateOf(false) }
+    var showTrackSelectionDialog by showTrackSelectionDialogHolder
     var currentTracks by remember { mutableStateOf(Tracks.EMPTY) }
     var trackSelector by remember { mutableStateOf<DefaultTrackSelector?>(null) }
     
