@@ -577,7 +577,7 @@ fun FavoritesScreen(navController: NavController) {
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            text = "Playlists",
+                            text = stringResource(R.string.playlists),
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier
                                 .padding(start = 8.dp)
@@ -707,7 +707,7 @@ fun FavoritesScreen(navController: NavController) {
                                 .size(48.dp)
                                 .padding(bottom = 16.dp)
                         )
-                        Text(text = "No favorites yet")
+                        Text(text = stringResource(R.string.no_favorites_yet))
                     }
                 }
             } else {

@@ -45,6 +45,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BrightnessMedium
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Forward
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -73,6 +74,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -130,6 +132,10 @@ fun PlayerView.setSubtitleColors(settings: SubtitleSettings, typeface: Typeface?
 }
 
 class VideoPlayerActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(com.dark.darknama.utils.LanguageUtils.wrapContext(newBase))
+    }
+
     companion object {
         const val EXTRA_VIDEO_URL = "video_url"
         const val EXTRA_SERIES_ID = "series_id"
@@ -181,6 +187,12 @@ class VideoPlayerActivity : ComponentActivity() {
     private var isActivityResumed = false
     private var hasMarkedAsWatched = false
     
+    // Compose-observable states shared with the composable so that
+    // an Android TV remote can show controls / open the settings dialog.
+    private val showControlsState = mutableStateOf(true)
+    private val showSettingsDialogState = mutableStateOf(false)
+    private var remoteSeekTimeSeconds = 10
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -192,6 +204,13 @@ class VideoPlayerActivity : ComponentActivity() {
         
         // Keep screen on while in video player
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        
+        // Load the user-configured seek time so the TV remote uses the same value
+        remoteSeekTimeSeconds = try {
+            StorageUtils.loadVideoPlayerSettings(this).seekTimeSeconds
+        } catch (e: Exception) {
+            10
+        }
         
         videoUrl = intent.getStringExtra(EXTRA_VIDEO_URL)
         seriesId = intent.getIntExtra(EXTRA_SERIES_ID, -1).takeIf { it != -1 }
@@ -209,6 +228,8 @@ class VideoPlayerActivity : ComponentActivity() {
                     episodeId = episodeId,
                     userAgent = streamUserAgent,
                     referer = streamReferer,
+                    externalShowControls = showControlsState,
+                    externalShowSettingsDialog = showSettingsDialogState,
                     onBack = this::finish
                 ) { player ->
                     exoPlayer = player
@@ -223,11 +244,16 @@ class VideoPlayerActivity : ComponentActivity() {
     // Handle TV remote control key events
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
         try {
+            // While the settings dialog is open, let the dialog window handle keys
+            if (showSettingsDialogState.value) {
+                return super.onKeyDown(keyCode, event)
+            }
             exoPlayer?.let { player ->
                 when (keyCode) {
                     android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
                     android.view.KeyEvent.KEYCODE_DPAD_CENTER -> {
                         player.playWhenReady = !player.playWhenReady
+                        showControlsState.value = true
                         return true
                     }
                     android.view.KeyEvent.KEYCODE_MEDIA_PLAY -> {
@@ -238,18 +264,40 @@ class VideoPlayerActivity : ComponentActivity() {
                         player.playWhenReady = false
                         return true
                     }
-                    android.view.KeyEvent.KEYCODE_DPAD_LEFT -> {
-                        val newPosition = (player.currentPosition - 10000).coerceAtLeast(0L) // Rewind 10 seconds
+                    android.view.KeyEvent.KEYCODE_DPAD_LEFT,
+                    android.view.KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                        val seekMs = remoteSeekTimeSeconds * 1000L
+                        val newPosition = (player.currentPosition - seekMs).coerceAtLeast(0L)
                         player.seekTo(newPosition)
+                        showControlsState.value = true
                         return true
                     }
-                    android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                        val newPosition = (player.currentPosition + 10000).coerceAtMost(player.duration) // Forward 10 seconds
+                    android.view.KeyEvent.KEYCODE_DPAD_RIGHT,
+                    android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                        val seekMs = remoteSeekTimeSeconds * 1000L
+                        val newPosition = (player.currentPosition + seekMs).coerceAtMost(player.duration)
                         player.seekTo(newPosition)
+                        showControlsState.value = true
+                        return true
+                    }
+                    android.view.KeyEvent.KEYCODE_DPAD_UP,
+                    android.view.KeyEvent.KEYCODE_MENU -> {
+                        // Open the player settings dialog (subtitles / audio / speed / style)
+                        showControlsState.value = true
+                        showSettingsDialogState.value = true
+                        return true
+                    }
+                    android.view.KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        // Toggle on-screen controls with the remote
+                        showControlsState.value = !showControlsState.value
                         return true
                     }
                     android.view.KeyEvent.KEYCODE_BACK -> {
-                        finish()
+                        if (showControlsState.value) {
+                            showControlsState.value = false
+                        } else {
+                            finish()
+                        }
                         return true
                     }
                 }
@@ -359,6 +407,8 @@ fun VideoPlayerScreen(
     episodeId: Int?,
     userAgent: String? = null,
     referer: String? = null,
+    externalShowControls: androidx.compose.runtime.MutableState<Boolean>? = null,
+    externalShowSettingsDialog: androidx.compose.runtime.MutableState<Boolean>? = null,
     onBack: () -> Unit,
     onPlayerReady: (ExoPlayer) -> Unit
 ) {
@@ -366,7 +416,7 @@ fun VideoPlayerScreen(
     var isPlaying by remember { mutableStateOf(true) }
     var currentPosition by remember { mutableStateOf(0L) }
     var duration by remember { mutableStateOf(0L) }
-    var showControls by remember { mutableStateOf(true) }
+    var showControls by externalShowControls ?: remember { mutableStateOf(true) }
     var isSeeking by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf<String?>(null) }
     var isRetrying by remember { mutableStateOf(false) }
@@ -379,7 +429,7 @@ fun VideoPlayerScreen(
     var hasMarkedAsWatched by remember { mutableStateOf(false) }
     
     // Track selection state
-    var showTrackSelectionDialog by remember { mutableStateOf(false) }
+    var showTrackSelectionDialog by externalShowSettingsDialog ?: remember { mutableStateOf(false) }
     var currentTracks by remember { mutableStateOf(Tracks.EMPTY) }
     var trackSelector by remember { mutableStateOf<DefaultTrackSelector?>(null) }
     
@@ -425,12 +475,24 @@ fun VideoPlayerScreen(
         }
     }
     
-    // Load subtitle settings
-    val subtitleSettings = remember(context) {
+    // Load subtitle settings (mutable so they can be changed from the in-player settings dialog)
+    var subtitleSettings by remember(context) {
+        mutableStateOf(
+            try {
+                StorageUtils.loadSubtitleSettings(context)
+            } catch (e: Exception) {
+                SubtitleSettings.getDefaultSettings(context)
+            }
+        )
+    }
+    
+    // Update and persist subtitle settings so the change is shared with the Settings screen
+    fun updateSubtitleSettings(newSettings: SubtitleSettings) {
+        subtitleSettings = newSettings
         try {
-            StorageUtils.loadSubtitleSettings(context)
+            StorageUtils.saveSubtitleSettings(context, newSettings)
         } catch (e: Exception) {
-            SubtitleSettings.getDefaultSettings(context)
+            // Ignore storage errors
         }
     }
     
@@ -813,7 +875,7 @@ fun VideoPlayerScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Initializing player...",
+                    text = androidx.compose.ui.res.stringResource(R.string.initializing_player),
                     color = Color.White,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -1055,7 +1117,7 @@ fun VideoPlayerScreen(
                         // Retry button when there's an error
                         if (isRetrying) {
                             Text(
-                                text = "Retrying...",
+                                text = androidx.compose.ui.res.stringResource(R.string.retrying),
                                 color = Color.White,
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier
@@ -1144,7 +1206,7 @@ fun VideoPlayerScreen(
                             
                             // Normal speed button
                             Text(
-                                text = "Normal",
+                                text = androidx.compose.ui.res.stringResource(R.string.normal),
                                 color = if (playbackSpeed == 1.0f) MaterialTheme.colorScheme.primary else Color.White,
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = if (playbackSpeed == 1.0f) FontWeight.Bold else FontWeight.Normal,
@@ -1166,11 +1228,16 @@ fun VideoPlayerScreen(
             }
         }
         
-        // Track selection dialog
+        // Player settings dialog (tracks + subtitle style + speed)
         if (showTrackSelectionDialog) {
             TrackSelectionDialog(
                 tracks = currentTracks,
                 trackSelector = trackSelector,
+                subtitleSettings = subtitleSettings,
+                onSubtitleSettingsChanged = { updateSubtitleSettings(it) },
+                playbackSpeed = playbackSpeed,
+                speedOptions = speedOptions,
+                onPlaybackSpeedChanged = { playbackSpeed = it },
                 onDismiss = { showTrackSelectionDialog = false }
             )
         }
@@ -1181,6 +1248,11 @@ fun VideoPlayerScreen(
 fun TrackSelectionDialog(
     tracks: Tracks,
     trackSelector: DefaultTrackSelector?,
+    subtitleSettings: SubtitleSettings = SubtitleSettings.DEFAULT,
+    onSubtitleSettingsChanged: (SubtitleSettings) -> Unit = {},
+    playbackSpeed: Float = 1.0f,
+    speedOptions: List<Float> = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f),
+    onPlaybackSpeedChanged: (Float) -> Unit = {},
     onDismiss: () -> Unit
 ) {
     val audioTrackGroups = remember(tracks) {
@@ -1222,7 +1294,7 @@ fun TrackSelectionDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Track Selection",
+                text = androidx.compose.ui.res.stringResource(R.string.player_settings_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -1236,7 +1308,7 @@ fun TrackSelectionDialog(
                 // Audio track selection
                 if (audioTrackGroups.isNotEmpty()) {
                     Text(
-                        text = "Audio Tracks",
+                        text = androidx.compose.ui.res.stringResource(R.string.audio_tracks),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -1279,7 +1351,7 @@ fun TrackSelectionDialog(
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        text = "None",
+                                        text = androidx.compose.ui.res.stringResource(R.string.none),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -1331,7 +1403,7 @@ fun TrackSelectionDialog(
                 // Subtitle track selection
                 if (textTrackGroups.isNotEmpty()) {
                     Text(
-                        text = "Subtitles",
+                        text = androidx.compose.ui.res.stringResource(R.string.subtitles),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -1374,7 +1446,7 @@ fun TrackSelectionDialog(
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        text = "None",
+                                        text = androidx.compose.ui.res.stringResource(R.string.none),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -1421,16 +1493,144 @@ fun TrackSelectionDialog(
                     }
                 } else {
                     Text(
-                        text = "No subtitles available",
+                        text = androidx.compose.ui.res.stringResource(R.string.no_subtitles_available),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // ---------- Playback speed ----------
+                Text(
+                    text = androidx.compose.ui.res.stringResource(R.string.playback_speed),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                var showSpeedDropdownInDialog by remember { mutableStateOf(false) }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showSpeedDropdownInDialog = true }
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = String.format("%.2fx", playbackSpeed),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showSpeedDropdownInDialog,
+                        onDismissRequest = { showSpeedDropdownInDialog = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        speedOptions.forEach { speed ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = String.format("%.2fx", speed),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (speed == playbackSpeed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                onClick = {
+                                    onPlaybackSpeedChanged(speed)
+                                    showSpeedDropdownInDialog = false
+                                }
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // ---------- Subtitle style settings ----------
+                Text(
+                    text = androidx.compose.ui.res.stringResource(R.string.subtitle_settings),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                // Subtitle text color
+                Text(
+                    text = androidx.compose.ui.res.stringResource(R.string.subtitle_text_color),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        Color.Yellow, Color.White, Color.Black,
+                        Color.Red, Color.Blue, Color.Green
+                    ).forEach { color ->
+                        val argb = color.toArgb()
+                        val isSelected = subtitleSettings.textColor == argb
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(color)
+                                .clickable {
+                                    onSubtitleSettingsChanged(subtitleSettings.copy(textColor = argb))
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = if (color == Color.White || color == Color.Yellow) Color.Black else Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Subtitle text size
+                Text(
+                    text = androidx.compose.ui.res.stringResource(R.string.subtitle_text_size, subtitleSettings.textSize.toInt()),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Slider(
+                    value = subtitleSettings.textSize,
+                    onValueChange = { size ->
+                        onSubtitleSettingsChanged(subtitleSettings.copy(textSize = size))
+                    },
+                    valueRange = 10f..50f,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = MaterialTheme.colorScheme.primary)
+                Text(
+                    androidx.compose.ui.res.stringResource(R.string.close),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     )

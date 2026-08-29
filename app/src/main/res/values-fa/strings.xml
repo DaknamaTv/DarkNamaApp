@@ -25,4 +25,86 @@
     <string name="tv_no_channels">شبکه‌ای یافت نشد</string>
     <string name="tv_no_results">نتیجه‌ای یافت نشد</string>
     <string name="tv_cancel">انصراف</string>
+    <string name="tv_vpn_help_title">راهنمای پخش</string>
+    <string name="tv_vpn_help_message">اگر شبکه‌ای پخش نشد، لطفاً از VPN استفاده کنید و دوباره امتحان کنید.</string>
+    <string name="ok">باشه</string>
+
+    <!-- Settings screen -->
+    <string name="theme_settings">تنظیمات تم</string>
+    <string name="theme_mode">حالت تم</string>
+    <string name="theme_light">روشن</string>
+    <string name="theme_dark">تیره</string>
+    <string name="theme_system">پیش‌فرض سیستم</string>
+    <string name="primary_color">رنگ اصلی</string>
+    <string name="color_default">پیش‌فرض</string>
+    <string name="video_player_settings">تنظیمات پخش‌کننده ویدیو</string>
+    <string name="seek_time">زمان جلو/عقب: %1$d ثانیه</string>
+    <string name="subtitle_settings">تنظیمات زیرنویس</string>
+    <string name="subtitle_text_color">رنگ متن</string>
+    <string name="subtitle_background_color">رنگ پس‌زمینه</string>
+    <string name="subtitle_text_size">اندازه متن: %1$dsp</string>
+    <string name="color_empty">خالی</string>
+    <string name="color_glass">شیشه‌ای</string>
+    <string name="font_settings">تنظیمات فونت</string>
+    <string name="select_font">انتخاب فونت</string>
+    <string name="font_system_default">پیش‌فرض سیستم</string>
+    <string name="font_vazirmatn">وزیرمتن</string>
+    <string name="episodes_cache">حافظه قسمت‌های سریال</string>
+    <string name="cache_size">حجم حافظه: %1$s</string>
+    <string name="cache_empty">خالی</string>
+    <string name="cache_bytes">%1$d بایت</string>
+    <string name="cache_clear_hint">برای پاک کردن نشان‌های قسمت‌های دیده‌شده ضربه بزنید</string>
+    <string name="about_description">اطلاعات بیشتر درباره دارک‌نما و توسعه‌دهنده آن</string>
+    <string name="check_updates">بررسی به‌روزرسانی</string>
+    <string name="check_updates_hint">بررسی آخرین نسخه برنامه</string>
+    <string name="reset_defaults">بازنشانی به پیش‌فرض</string>
+    <string name="reset_defaults_hint">برای بازنشانی همه تنظیمات به مقادیر پیش‌فرض ضربه بزنید</string>
+    <string name="reset_settings_title">بازنشانی تنظیمات</string>
+    <string name="reset_settings_message">آیا مطمئن هستید که می‌خواهید همه تنظیمات به مقادیر پیش‌فرض بازنشانی شوند؟</string>
+    <string name="reset">بازنشانی</string>
+    <string name="cancel">انصراف</string>
+    <string name="clear_watched_title">پاک کردن قسمت‌های دیده‌شده</string>
+    <string name="clear_watched_message">آیا مطمئن هستید که می‌خواهید همه نشان‌های قسمت‌های دیده‌شده پاک شوند؟ این عمل قابل بازگشت نیست.</string>
+    <string name="clear_all">پاک کردن همه</string>
+    <string name="update_available_title">به‌روزرسانی موجود است</string>
+    <string name="update_available_message">نسخه جدیدی از برنامه موجود است. آیا می‌خواهید اکنون دانلود کنید؟</string>
+    <string name="download">دانلود</string>
+    <string name="later">بعداً</string>
+    <string name="change_language">تغییر زبان</string>
+    <string name="app_up_to_date">برنامه به‌روز است</string>
+    <string name="unable_check_updates">امکان بررسی به‌روزرسانی وجود ندارد</string>
+    <string name="error_check_updates">خطا در بررسی به‌روزرسانی</string>
+    <string name="watched_cache_cleared">حافظه قسمت‌های دیده‌شده پاک شد</string>
+    <string name="error_clearing_cache">خطا در پاک کردن حافظه</string>
+
+    <!-- Video Player -->
+    <string name="player_settings_title">تنظیمات پخش‌کننده</string>
+    <string name="track_selection">انتخاب ترک</string>
+    <string name="audio_tracks">ترک‌های صوتی</string>
+    <string name="subtitles">زیرنویس‌ها</string>
+    <string name="no_subtitles_available">زیرنویسی موجود نیست</string>
+    <string name="none">هیچ‌کدام</string>
+    <string name="close">بستن</string>
+    <string name="playback_speed">سرعت پخش</string>
+    <string name="normal">عادی</string>
+    <string name="retrying">در حال تلاش مجدد…</string>
+    <string name="initializing_player">در حال آماده‌سازی پخش‌کننده…</string>
+
+    <!-- Search screen -->
+    <string name="search_placeholder">جستجوی فیلم و سریال…</string>
+    <string name="search_title">جستجوی فیلم و سریال</string>
+    <string name="search_hint_text">برای شروع جستجو یک کلمه وارد کنید</string>
+    <string name="no_results_found">نتیجه‌ای یافت نشد</string>
+    <string name="retry">تلاش مجدد</string>
+    <string name="try_again">لطفاً دوباره تلاش کنید</string>
+
+    <!-- Movies / Series / Favorites -->
+    <string name="loading_movies">در حال بارگذاری فیلم‌ها…</string>
+    <string name="loading_series">در حال بارگذاری سریال‌ها…</string>
+    <string name="failed_load_movies">خطا در بارگذاری فیلم‌ها</string>
+    <string name="failed_load_series">خطا در بارگذاری سریال‌ها</string>
+    <string name="failed_load_more_movies">خطا در بارگذاری فیلم‌های بیشتر</string>
+    <string name="failed_load_more_series">خطا در بارگذاری سریال‌های بیشتر</string>
+    <string name="playlists">لیست‌های پخش</string>
+    <string name="no_favorites_yet">هنوز علاقه‌مندی‌ای ندارید</string>
 </resources>

@@ -163,7 +163,7 @@ fun LoadingScreen() {
     ) {
         // Add a title while loading
         Text(
-            text = "Loading Movies...",
+            text = androidx.compose.ui.res.stringResource(com.dark.darknama.R.string.loading_movies),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(16.dp),
@@ -525,7 +525,7 @@ fun ErrorScreen(
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center
     ) {
         Text(
-            text = "Failed to load movies",
+            text = androidx.compose.ui.res.stringResource(com.dark.darknama.R.string.failed_load_movies),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -575,7 +575,7 @@ fun ErrorItem(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Failed to load more movies",
+                text = androidx.compose.ui.res.stringResource(com.dark.darknama.R.string.failed_load_more_movies),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.padding(bottom = 8.dp)

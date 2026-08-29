@@ -25,4 +25,86 @@
     <string name="tv_no_channels">No channels found</string>
     <string name="tv_no_results">No results</string>
     <string name="tv_cancel">Cancel</string>
+    <string name="tv_vpn_help_title">Playback Help</string>
+    <string name="tv_vpn_help_message">If a channel does not play, please use a VPN and try again.</string>
+    <string name="ok">OK</string>
+
+    <!-- Settings screen -->
+    <string name="theme_settings">Theme Settings</string>
+    <string name="theme_mode">Theme Mode</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System Default</string>
+    <string name="primary_color">Primary Color</string>
+    <string name="color_default">Default</string>
+    <string name="video_player_settings">Video Player Settings</string>
+    <string name="seek_time">Seek Time: %1$d seconds</string>
+    <string name="subtitle_settings">Subtitle Settings</string>
+    <string name="subtitle_text_color">Text Color</string>
+    <string name="subtitle_background_color">Background Color</string>
+    <string name="subtitle_text_size">Text Size: %1$dsp</string>
+    <string name="color_empty">Empty</string>
+    <string name="color_glass">Glass</string>
+    <string name="font_settings">Font Settings</string>
+    <string name="select_font">Select Font</string>
+    <string name="font_system_default">System Default</string>
+    <string name="font_vazirmatn">Vazirmatn</string>
+    <string name="episodes_cache">Series Episodes Cache</string>
+    <string name="cache_size">Cache size: %1$s</string>
+    <string name="cache_empty">Empty</string>
+    <string name="cache_bytes">%1$d bytes</string>
+    <string name="cache_clear_hint">Tap to clear all watched episode marks</string>
+    <string name="about_description">Learn more about DarkNama and its developer</string>
+    <string name="check_updates">Check for Updates</string>
+    <string name="check_updates_hint">Check for the latest version of the app</string>
+    <string name="reset_defaults">Reset to Defaults</string>
+    <string name="reset_defaults_hint">Tap to reset all settings to default values</string>
+    <string name="reset_settings_title">Reset Settings</string>
+    <string name="reset_settings_message">Are you sure you want to reset all settings to their default values?</string>
+    <string name="reset">Reset</string>
+    <string name="cancel">Cancel</string>
+    <string name="clear_watched_title">Clear Watched Episodes</string>
+    <string name="clear_watched_message">Are you sure you want to clear all watched episode marks? This action cannot be undone.</string>
+    <string name="clear_all">Clear All</string>
+    <string name="update_available_title">Update Available</string>
+    <string name="update_available_message">A new version of the app is available. Would you like to download it now?</string>
+    <string name="download">Download</string>
+    <string name="later">Later</string>
+    <string name="change_language">Change Language</string>
+    <string name="app_up_to_date">App is up to date</string>
+    <string name="unable_check_updates">Unable to check for updates</string>
+    <string name="error_check_updates">Error checking for updates</string>
+    <string name="watched_cache_cleared">Watched episodes cache cleared</string>
+    <string name="error_clearing_cache">Error clearing cache</string>
+
+    <!-- Video Player -->
+    <string name="player_settings_title">Player Settings</string>
+    <string name="track_selection">Track Selection</string>
+    <string name="audio_tracks">Audio Tracks</string>
+    <string name="subtitles">Subtitles</string>
+    <string name="no_subtitles_available">No subtitles available</string>
+    <string name="none">None</string>
+    <string name="close">Close</string>
+    <string name="playback_speed">Playback Speed</string>
+    <string name="normal">Normal</string>
+    <string name="retrying">Retrying…</string>
+    <string name="initializing_player">Initializing player…</string>
+
+    <!-- Search screen -->
+    <string name="search_placeholder">Search movies and series…</string>
+    <string name="search_title">Search for movies and series</string>
+    <string name="search_hint_text">Enter a keyword to start searching</string>
+    <string name="no_results_found">No results found</string>
+    <string name="retry">Retry</string>
+    <string name="try_again">Please try again</string>
+
+    <!-- Movies / Series / Favorites -->
+    <string name="loading_movies">Loading Movies…</string>
+    <string name="loading_series">Loading Series…</string>
+    <string name="failed_load_movies">Failed to load movies</string>
+    <string name="failed_load_series">Failed to load series</string>
+    <string name="failed_load_more_movies">Failed to load more movies</string>
+    <string name="failed_load_more_series">Failed to load more series</string>
+    <string name="playlists">Playlists</string>
+    <string name="no_favorites_yet">No favorites yet</string>
 </resources>

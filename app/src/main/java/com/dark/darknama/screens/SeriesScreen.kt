@@ -156,7 +156,7 @@ fun LoadingScreenSeries() {
     ) {
         // Add a title while loading
         Text(
-            text = "Loading Series...",
+            text = androidx.compose.ui.res.stringResource(com.dark.darknama.R.string.loading_series),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(16.dp),
@@ -518,7 +518,7 @@ fun ErrorScreenSeries(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Failed to load series",
+            text = androidx.compose.ui.res.stringResource(com.dark.darknama.R.string.failed_load_series),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -568,7 +568,7 @@ fun ErrorItemSeries(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Failed to load more series",
+                text = androidx.compose.ui.res.stringResource(com.dark.darknama.R.string.failed_load_more_series),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.padding(bottom = 8.dp)

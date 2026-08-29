@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Refresh
@@ -99,6 +100,7 @@ fun LiveTvScreen(
 
     var showCountryPicker by remember { mutableStateOf(false) }
     var showCategoryPicker by remember { mutableStateOf(false) }
+    var showVpnHelpDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // ---------- Header: title + settings gear ----------
@@ -124,7 +126,30 @@ fun LiveTvScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            SettingsIconButton(navController = navController)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Help (?) button - shows VPN hint popup
+                val helpInteractionSource = remember { MutableInteractionSource() }
+                val isHelpFocused by helpInteractionSource.collectIsFocusedAsState()
+                IconButton(
+                    onClick = { showVpnHelpDialog = true },
+                    interactionSource = helpInteractionSource,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .border(
+                            width = if (isHelpFocused) 2.dp else 0.dp,
+                            color = if (isHelpFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.HelpOutline,
+                        contentDescription = stringResource(R.string.tv_vpn_help_title),
+                        tint = if (isHelpFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                SettingsIconButton(navController = navController)
+            }
         }
 
         // ---------- Browse mode selector ----------
@@ -374,6 +399,38 @@ fun LiveTvScreen(
                 }
             }
         }
+    }
+
+    // ---------- VPN help dialog ----------
+    if (showVpnHelpDialog) {
+        AlertDialog(
+            onDismissRequest = { showVpnHelpDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.HelpOutline,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.tv_vpn_help_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.tv_vpn_help_message),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showVpnHelpDialog = false }) {
+                    Text(stringResource(R.string.ok))
+                }
+            }
+        )
     }
 
     // ---------- Country picker dialog ----------
