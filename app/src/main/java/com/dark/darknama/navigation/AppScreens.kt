@@ -3,11 +3,14 @@ package com.dark.darknama.navigation
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FormatColorFill
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.dark.darknama.R
@@ -86,6 +89,33 @@ sealed class AppScreens(
         route = "about",
         resourceId = R.string.about,
         icon = Icons.Default.Info,
+        showBottomBar = false,
+        showSidebar = false
+    )
+
+    // ---- Settings sub-pages ----
+    // Each settings category is a real page (instead of an inline drop-down)
+    // so it can be operated comfortably with an Android TV remote.
+    data object ThemeSettings : AppScreens(
+        route = "settings/theme",
+        resourceId = R.string.theme_settings,
+        icon = Icons.Default.FormatColorFill,
+        showBottomBar = false,
+        showSidebar = false
+    )
+
+    data object PlayerSettings : AppScreens(
+        route = "settings/player",
+        resourceId = R.string.video_player_settings,
+        icon = Icons.Default.Subtitles,
+        showBottomBar = false,
+        showSidebar = false
+    )
+
+    data object FontSettings : AppScreens(
+        route = "settings/font",
+        resourceId = R.string.font_settings,
+        icon = Icons.Default.TextFields,
         showBottomBar = false,
         showSidebar = false
     )

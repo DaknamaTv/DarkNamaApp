@@ -8,6 +8,42 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+/**
+ * App version.
+ *
+ * The version can be injected from CI (GitHub Actions) so the installed APK
+ * always reports the same version as the release tag used for the build:
+ *
+ *   ./gradlew assembleRelease -PappVersionName=v2.3.0
+ *
+ * When no property is provided (local builds) the fallback below is used.
+ */
+val fallbackVersionName = "2.1.0"
+
+val resolvedVersionName: String = (project.findProperty("appVersionName") as String?)
+    ?.trim()
+    ?.removePrefix("v")
+    ?.removePrefix("V")
+    ?.takeIf { it.isNotBlank() }
+    ?: fallbackVersionName
+
+/**
+ * Derive a monotonically increasing versionCode from the version name
+ * (e.g. 2.3.1 -> 20301). Can also be overridden with -PappVersionCode=123.
+ */
+val resolvedVersionCode: Int = (project.findProperty("appVersionCode") as String?)
+    ?.trim()
+    ?.toIntOrNull()
+    ?: run {
+        val parts = resolvedVersionName
+            .split(".", "-")
+            .mapNotNull { it.filter { c -> c.isDigit() }.toIntOrNull() }
+        val major = parts.getOrNull(0) ?: 1
+        val minor = parts.getOrNull(1) ?: 0
+        val patch = parts.getOrNull(2) ?: 0
+        (major * 10000) + (minor * 100) + patch
+    }
+
 android {
     namespace = "com.dark.darknama"
     compileSdk = 36
@@ -18,8 +54,8 @@ android {
         // Android 7.0 (API 23) and earlier are not supported
         minSdk = 24
         targetSdk = 36
-        versionCode = 21
-        versionName = "2.0.0"
+        versionCode = resolvedVersionCode
+        versionName = resolvedVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

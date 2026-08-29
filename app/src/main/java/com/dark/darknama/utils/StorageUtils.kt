@@ -2,6 +2,7 @@ package com.dark.darknama.utils
 
 import android.content.Context
 import android.util.Log
+import com.dark.darknama.data.model.FavoriteChannel
 import com.dark.darknama.data.model.FavoriteGroup
 import com.dark.darknama.data.model.FavoriteItem
 import com.dark.darknama.data.model.Movie
@@ -499,6 +500,78 @@ object StorageUtils {
         }
     }
     
+    // ---------------------------------------------------------------
+    // Live TV favorite channels
+    // ---------------------------------------------------------------
+    private const val FAVORITE_CHANNELS_FILE = "favorite_channels.json"
+
+    fun loadFavoriteChannels(context: Context): List<FavoriteChannel> {
+        return try {
+            val file = File(context.filesDir, FAVORITE_CHANNELS_FILE)
+            if (file.exists()) {
+                val jsonString = file.readText()
+                Json { ignoreUnknownKeys = true }.decodeFromString<List<FavoriteChannel>>(jsonString)
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading favorite channels", e)
+            emptyList()
+        }
+    }
+
+    private fun writeFavoriteChannels(context: Context, channels: List<FavoriteChannel>) {
+        try {
+            val jsonString = Json.encodeToString(channels)
+            File(context.filesDir, FAVORITE_CHANNELS_FILE).writeText(jsonString)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving favorite channels", e)
+        }
+    }
+
+    fun isFavoriteChannel(context: Context, key: String): Boolean {
+        return loadFavoriteChannels(context).any { it.key == key }
+    }
+
+    fun addFavoriteChannel(context: Context, channel: FavoriteChannel) {
+        val channels = loadFavoriteChannels(context).toMutableList()
+        channels.removeAll { it.key == channel.key }
+        // Newest first
+        channels.add(0, channel)
+        writeFavoriteChannels(context, channels)
+        Log.d(TAG, "Favorite channel added: ${channel.name}")
+    }
+
+    fun removeFavoriteChannel(context: Context, key: String) {
+        val channels = loadFavoriteChannels(context).toMutableList()
+        channels.removeAll { it.key == key }
+        writeFavoriteChannels(context, channels)
+        Log.d(TAG, "Favorite channel removed: $key")
+    }
+
+    /**
+     * Toggles the favorite state of a channel.
+     * @return true if the channel is now a favorite, false if it was removed.
+     */
+    fun toggleFavoriteChannel(context: Context, channel: FavoriteChannel): Boolean {
+        return if (isFavoriteChannel(context, channel.key)) {
+            removeFavoriteChannel(context, channel.key)
+            false
+        } else {
+            addFavoriteChannel(context, channel)
+            true
+        }
+    }
+
+    fun clearFavoriteChannels(context: Context) {
+        try {
+            val file = File(context.filesDir, FAVORITE_CHANNELS_FILE)
+            if (file.exists()) file.delete()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error clearing favorite channels", e)
+        }
+    }
+
     // Welcome screen state functions
     fun saveWelcomeCompleted(context: Context) {
         try {

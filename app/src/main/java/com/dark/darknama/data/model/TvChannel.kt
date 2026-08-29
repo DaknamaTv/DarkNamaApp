@@ -27,5 +27,6 @@ data class TvChannel(
 enum class TvBrowseMode {
     PERSIAN,   // Default: Persian channels (languages/fas.m3u)
     COUNTRY,   // Browse by country (index.country.m3u)
-    CATEGORY   // Browse by category (index.m3u)
+    CATEGORY,  // Browse by category (index.m3u)
+    FAVORITES  // User's starred channels (stored locally)
 }

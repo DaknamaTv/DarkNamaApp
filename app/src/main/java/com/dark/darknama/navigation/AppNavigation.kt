@@ -19,6 +19,9 @@ import com.dark.darknama.screens.SplashScreen
 import com.dark.darknama.screens.FavoritesScreen
 import com.dark.darknama.screens.CountryScreen
 import com.dark.darknama.screens.LiveTvScreen
+import com.dark.darknama.screens.settings.FontSettingsScreen
+import com.dark.darknama.screens.settings.PlayerSettingsScreen
+import com.dark.darknama.screens.settings.ThemeSettingsScreen
 import com.dark.darknama.ui.movies.MoviesViewModel
 import com.dark.darknama.ui.tv.LiveTvViewModel
 import com.dark.darknama.ui.search.SearchViewModel
@@ -98,6 +101,22 @@ fun AppNavigation(
         }
         composable(route = AppScreens.About.route) {
             AboutScreen(navController)
+        }
+        // ---- Settings sub-pages (full pages instead of drop-downs) ----
+        composable(route = AppScreens.ThemeSettings.route) {
+            ThemeSettingsScreen(
+                navController = navController,
+                onThemeSettingsChanged = onThemeSettingsChanged
+            )
+        }
+        composable(route = AppScreens.PlayerSettings.route) {
+            PlayerSettingsScreen(navController = navController)
+        }
+        composable(route = AppScreens.FontSettings.route) {
+            FontSettingsScreen(
+                navController = navController,
+                onFontSettingsChanged = onFontSettingsChanged
+            )
         }
         composable(
             route = AppScreens.SingleMovie.route,

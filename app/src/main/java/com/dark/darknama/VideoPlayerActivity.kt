@@ -24,9 +24,12 @@ import kotlin.math.abs
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +41,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -79,6 +83,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -102,33 +107,57 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// Extension function to set subtitle text size on PlayerView
-fun PlayerView.setSubtitleTextSize(spSize: Float) {
-    // Convert sp to pixels
-    val displayMetrics = context.resources.displayMetrics
-    val pixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, spSize, displayMetrics)
-    
-    // Set the subtitle text size
-    subtitleView?.setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, pixels)
-}
+/**
+ * Applies the user's subtitle settings (size + colours + font) to the PlayerView.
+ *
+ * IMPORTANT: media3's SubtitleView honours the *embedded* styles/sizes that come
+ * with the subtitle track by default, which silently overrides any size we set.
+ * `setApplyEmbeddedStyles(false)` / `setApplyEmbeddedFontSizes(false)` must be
+ * disabled first, otherwise the "text size" setting appears to do nothing.
+ */
+fun PlayerView.applySubtitleSettings(settings: SubtitleSettings, typeface: Typeface? = null) {
+    val sv = subtitleView ?: return
 
-// Extension function to set subtitle colors and font
-fun PlayerView.setSubtitleColors(settings: SubtitleSettings, typeface: Typeface? = null) {
-    // Create a custom CaptionStyleCompat with the typeface
-    // Use transparent background as default
+    // 1) Stop the track's own styling from overriding ours.
+    sv.setApplyEmbeddedStyles(false)
+    sv.setApplyEmbeddedFontSizes(false)
+
+    // 2) Size - convert sp to px against the current display metrics.
+    val pixels = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_SP,
+        settings.textSize,
+        context.resources.displayMetrics
+    )
+    sv.setFixedTextSize(TypedValue.COMPLEX_UNIT_PX, pixels)
+
+    // 3) Colours + typeface.
+    // borderColor doubles as the subtitle background/outline colour:
+    //  - fully transparent -> no background, draw a black outline for legibility
+    //  - otherwise         -> use it as the background box behind the text
+    val isTransparentBackground = android.graphics.Color.alpha(settings.borderColor) == 0
     val style = CaptionStyleCompat(
         settings.textColor,
-        android.graphics.Color.TRANSPARENT, // Always use transparent background
-        settings.borderColor,
-        CaptionStyleCompat.EDGE_TYPE_OUTLINE,
-        settings.borderColor,
+        if (isTransparentBackground) android.graphics.Color.TRANSPARENT else settings.borderColor,
+        android.graphics.Color.TRANSPARENT, // window colour
+        if (isTransparentBackground) CaptionStyleCompat.EDGE_TYPE_OUTLINE else CaptionStyleCompat.EDGE_TYPE_NONE,
+        android.graphics.Color.BLACK,
         typeface
     )
-    subtitleView?.setStyle(style)
-    
-    // Note: ExoPlayer's subtitle rendering has limited support for custom fonts.
-    // The font may not be applied to all subtitle formats or on all Android versions.
-    // This is a known limitation of ExoPlayer's subtitle rendering system.
+    sv.setStyle(style)
+}
+
+// Kept for backwards compatibility with existing call sites.
+fun PlayerView.setSubtitleTextSize(spSize: Float) {
+    val pixels = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_SP,
+        spSize,
+        context.resources.displayMetrics
+    )
+    subtitleView?.apply {
+        setApplyEmbeddedStyles(false)
+        setApplyEmbeddedFontSizes(false)
+        setFixedTextSize(TypedValue.COMPLEX_UNIT_PX, pixels)
+    }
 }
 
 class VideoPlayerActivity : ComponentActivity() {
@@ -899,10 +928,8 @@ fun VideoPlayerScreen(
                         // Make the player view fill the entire screen
                         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                         
-                        // Apply subtitle settings to the player view
-                        // Set subtitle styling with custom font
-                        setSubtitleTextSize(subtitleSettings.textSize)
-                        setSubtitleColors(subtitleSettings, customTypeface)
+                        // Apply subtitle settings (size + colours + font) to the player view
+                        applySubtitleSettings(subtitleSettings, customTypeface)
                     }
                 } catch (e: Exception) {
                     // Return a simple view if PlayerView fails to initialize
@@ -914,11 +941,10 @@ fun VideoPlayerScreen(
             modifier = Modifier.fillMaxSize(),
             update = { playerView ->
                 try {
-                    // Update the player view when subtitle settings change
-                    // Update subtitle styling when settings change
+                    // Re-apply subtitle styling whenever the settings change so
+                    // changes made in the in-player dialog are visible instantly.
                     if (playerView is PlayerView) {
-                        playerView.setSubtitleTextSize(subtitleSettings.textSize)
-                        playerView.setSubtitleColors(subtitleSettings, customTypeface)
+                        playerView.applySubtitleSettings(subtitleSettings, customTypeface)
                     }
                 } catch (e: Exception) {
                     // Ignore update errors
@@ -1157,51 +1183,31 @@ fun VideoPlayerScreen(
                                 .background(Color.Black.copy(alpha = 0.6f))
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
-                            Box {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .clickable { showSpeedDropdown = true }
-                                        .padding(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Speed,
-                                        contentDescription = "Playback speed",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    
-                                    Text(
-                                        text = String.format("%.2fx", playbackSpeed),
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 4.dp),
-                                        fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
-                                    )
-                                }
-                                
-                                DropdownMenu(
-                                    expanded = showSpeedDropdown,
-                                    onDismissRequest = { showSpeedDropdown = false },
-                                    modifier = Modifier.background(Color.Black)
-                                ) {
-                                    speedOptions.forEach { speed ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    text = String.format("%.2fx", speed),
-                                                    color = if (speed == playbackSpeed) MaterialTheme.colorScheme.primary else Color.White,
-                                                    fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
-                                                )
-                                            },
-                                            onClick = {
-                                                playbackSpeed = speed
-                                                showSpeedDropdown = false
-                                            }
-                                        )
-                                    }
-                                }
+                            // Tapping the speed chip opens a small popup dialog
+                            // listing every speed option (a DropdownMenu did not
+                            // show reliably above the full-screen player, and was
+                            // unreachable with a TV remote).
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clickable { showSpeedDropdown = true }
+                                    .padding(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Speed,
+                                    contentDescription = "Playback speed",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+
+                                Text(
+                                    text = String.format("%.2fx", playbackSpeed),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 4.dp),
+                                    fontFamily = FontManager.loadFontFamily(context, fontSettings.fontType)
+                                )
                             }
                             
                             Spacer(modifier = Modifier.width(4.dp))
@@ -1230,6 +1236,21 @@ fun VideoPlayerScreen(
             }
         }
         
+        // Quick playback-speed popup opened from the bottom control bar
+        if (showSpeedDropdown) {
+            OptionPickerDialog(
+                title = androidx.compose.ui.res.stringResource(R.string.playback_speed),
+                options = speedOptions.map { speed ->
+                    PickerOption(
+                        label = String.format("%.2fx", speed),
+                        isSelected = speed == playbackSpeed,
+                        onSelect = { playbackSpeed = speed }
+                    )
+                },
+                onDismiss = { showSpeedDropdown = false }
+            )
+        }
+        
         // Player settings dialog (tracks + subtitle style + speed)
         if (showTrackSelectionDialog) {
             TrackSelectionDialog(
@@ -1246,6 +1267,125 @@ fun VideoPlayerScreen(
     }
 }
 
+/** A single row inside [OptionPickerDialog]. */
+data class PickerOption(
+    val label: String,
+    val isSelected: Boolean,
+    val onSelect: () -> Unit
+)
+
+/**
+ * A small popup dialog listing selectable options.
+ *
+ * Replaces the `DropdownMenu`s that were used for playback speed /
+ * audio track / subtitle track: those did not render reliably on top of the
+ * full-screen player and could not be focused with an Android TV remote.
+ */
+@Composable
+fun OptionPickerDialog(
+    title: String,
+    options: List<PickerOption>,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 380.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                options.forEach { option ->
+                    OptionPickerRow(
+                        label = option.label,
+                        isSelected = option.isSelected,
+                        onClick = {
+                            option.onSelect()
+                            onDismiss()
+                        }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(androidx.compose.ui.res.stringResource(R.string.close))
+            }
+        }
+    )
+}
+
+@Composable
+private fun OptionPickerRow(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                when {
+                    isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+                    isFocused -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> Color.Transparent
+                }
+            )
+            .border(
+                width = if (isFocused) 2.dp else 0.dp,
+                color = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 14.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = if (isSelected || isFocused)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Player settings dialog: audio track, subtitle track, playback speed and
+ * subtitle styling.
+ *
+ * Each selectable list opens as its own small popup ([OptionPickerDialog])
+ * instead of an inline DropdownMenu, so the options actually appear over the
+ * full-screen player and can be reached with an Android TV remote.
+ */
 @Composable
 fun TrackSelectionDialog(
     tracks: Tracks,
@@ -1257,41 +1397,53 @@ fun TrackSelectionDialog(
     onPlaybackSpeedChanged: (Float) -> Unit = {},
     onDismiss: () -> Unit
 ) {
+    val noneLabel = androidx.compose.ui.res.stringResource(R.string.none)
+
     val audioTrackGroups = remember(tracks) {
         tracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
     }
-    
+
     val textTrackGroups = remember(tracks) {
         tracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
     }
-    
-    // State for dropdown menus
-    var showAudioDropdown by remember { mutableStateOf(false) }
-    var showSubtitleDropdown by remember { mutableStateOf(false) }
-    
-    // Current selections
+
+    // Which sub-popup is currently open
+    var showAudioPicker by remember { mutableStateOf(false) }
+    var showSubtitlePicker by remember { mutableStateOf(false) }
+    var showSpeedPicker by remember { mutableStateOf(false) }
+
+    /** Human readable name for a track format. */
+    fun trackName(format: androidx.media3.common.Format, fallback: String): String {
+        val label = format.label
+        if (!label.isNullOrBlank()) return label
+        val language = format.language
+        if (!language.isNullOrBlank()) {
+            return try {
+                val locale = java.util.Locale(language)
+                locale.displayLanguage.ifBlank { language }
+            } catch (e: Exception) {
+                language
+            }
+        }
+        return fallback
+    }
+
     val currentAudioSelection = remember(audioTrackGroups) {
         audioTrackGroups.firstOrNull { it.isSelected }?.let { group ->
             (0 until group.length).firstOrNull { group.isTrackSelected(it) }?.let { index ->
-                val format = group.getTrackFormat(index)
-                format.language?.let { 
-                    if (it.isNotEmpty()) it else format.label ?: "Track $index"
-                } ?: format.label ?: "Track $index"
+                trackName(group.getTrackFormat(index), "Track ${index + 1}")
             }
-        } ?: "None"
+        } ?: noneLabel
     }
-    
+
     val currentSubtitleSelection = remember(textTrackGroups) {
         textTrackGroups.firstOrNull { it.isSelected }?.let { group ->
             (0 until group.length).firstOrNull { group.isTrackSelected(it) }?.let { index ->
-                val format = group.getTrackFormat(index)
-                format.language?.let { 
-                    if (it.isNotEmpty()) it else format.label ?: "Subtitle $index"
-                } ?: format.label ?: "Subtitle $index"
+                trackName(group.getTrackFormat(index), "Subtitle ${index + 1}")
             }
-        } ?: "None"
+        } ?: noneLabel
     }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -1307,192 +1459,23 @@ fun TrackSelectionDialog(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                // Audio track selection
+                // ---------- Audio track ----------
                 if (audioTrackGroups.isNotEmpty()) {
-                    Text(
-                        text = androidx.compose.ui.res.stringResource(R.string.audio_tracks),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                    PlayerSettingRow(
+                        title = androidx.compose.ui.res.stringResource(R.string.audio_tracks),
+                        value = currentAudioSelection,
+                        onClick = { showAudioPicker = true }
                     )
-                    
-                    // Audio dropdown
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showAudioDropdown = true }
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = currentAudioSelection,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Expand audio tracks",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        
-                        DropdownMenu(
-                            expanded = showAudioDropdown,
-                            onDismissRequest = { showAudioDropdown = false },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            // None option
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = androidx.compose.ui.res.stringResource(R.string.none),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                },
-                                onClick = {
-                                    trackSelector?.setParameters(
-                                        trackSelector.buildUponParameters()
-                                            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
-                                    )
-                                    showAudioDropdown = false
-                                }
-                            )
-                            
-                            // Audio track options
-                            audioTrackGroups.forEachIndexed { groupIndex, trackGroup ->
-                                for (i in 0 until trackGroup.length) {
-                                    val format = trackGroup.getTrackFormat(i)
-                                    val trackName = format.language?.let { 
-                                        if (it.isNotEmpty()) it else format.label ?: "Track ${groupIndex + 1}.${i + 1}"
-                                    } ?: format.label ?: "Track ${groupIndex + 1}.${i + 1}"
-                                    
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                text = trackName,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        },
-                                        onClick = {
-                                            trackSelector?.setParameters(
-                                                trackSelector.buildUponParameters()
-                                                    .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
-                                                    .setOverrideForType(
-                                                        TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
-                                                    )
-                                            )
-                                            showAudioDropdown = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Subtitle track selection
+
+                // ---------- Subtitle track ----------
                 if (textTrackGroups.isNotEmpty()) {
-                    Text(
-                        text = androidx.compose.ui.res.stringResource(R.string.subtitles),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                    PlayerSettingRow(
+                        title = androidx.compose.ui.res.stringResource(R.string.subtitles),
+                        value = currentSubtitleSelection,
+                        onClick = { showSubtitlePicker = true }
                     )
-                    
-                    // Subtitle dropdown
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showSubtitleDropdown = true }
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = currentSubtitleSelection,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Expand subtitle tracks",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        
-                        DropdownMenu(
-                            expanded = showSubtitleDropdown,
-                            onDismissRequest = { showSubtitleDropdown = false },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            // None option
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = androidx.compose.ui.res.stringResource(R.string.none),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                },
-                                onClick = {
-                                    trackSelector?.setParameters(
-                                        trackSelector.buildUponParameters()
-                                            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
-                                    )
-                                    showSubtitleDropdown = false
-                                }
-                            )
-                            
-                            // Subtitle track options
-                            textTrackGroups.forEachIndexed { groupIndex, trackGroup ->
-                                for (i in 0 until trackGroup.length) {
-                                    val format = trackGroup.getTrackFormat(i)
-                                    val trackName = format.language?.let { 
-                                        if (it.isNotEmpty()) it else format.label ?: "Subtitle ${groupIndex + 1}.${i + 1}"
-                                    } ?: format.label ?: "Subtitle ${groupIndex + 1}.${i + 1}"
-                                    
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                text = trackName,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        },
-                                        onClick = {
-                                            trackSelector?.setParameters(
-                                                trackSelector.buildUponParameters()
-                                                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
-                                                    .setOverrideForType(
-                                                        TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
-                                                    )
-                                            )
-                                            showSubtitleDropdown = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
                 } else {
                     Text(
                         text = androidx.compose.ui.res.stringResource(R.string.no_subtitles_available),
@@ -1500,131 +1483,154 @@ fun TrackSelectionDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
+
+                Spacer(modifier = Modifier.height(12.dp))
+
                 // ---------- Playback speed ----------
-                Text(
-                    text = androidx.compose.ui.res.stringResource(R.string.playback_speed),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                PlayerSettingRow(
+                    title = androidx.compose.ui.res.stringResource(R.string.playback_speed),
+                    value = String.format("%.2fx", playbackSpeed),
+                    onClick = { showSpeedPicker = true }
                 )
-                
-                var showSpeedDropdownInDialog by remember { mutableStateOf(false) }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showSpeedDropdownInDialog = true }
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = String.format("%.2fx", playbackSpeed),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    
-                    DropdownMenu(
-                        expanded = showSpeedDropdownInDialog,
-                        onDismissRequest = { showSpeedDropdownInDialog = false },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        speedOptions.forEach { speed ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = String.format("%.2fx", speed),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = if (speed == playbackSpeed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                    )
-                                },
-                                onClick = {
-                                    onPlaybackSpeedChanged(speed)
-                                    showSpeedDropdownInDialog = false
-                                }
-                            )
-                        }
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // ---------- Subtitle style settings ----------
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // ---------- Subtitle styling ----------
                 Text(
                     text = androidx.compose.ui.res.stringResource(R.string.subtitle_settings),
                     style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+
+                // Subtitle text size, adjusted with +/- so a TV remote works
+                Text(
+                    text = androidx.compose.ui.res.stringResource(
+                        R.string.subtitle_text_size,
+                        subtitleSettings.textSize.toInt()
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                
-                // Subtitle text color
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SubtitleSizeButton(
+                        symbol = "−",
+                        enabled = subtitleSettings.textSize > 10f,
+                        onClick = {
+                            onSubtitleSettingsChanged(
+                                subtitleSettings.copy(
+                                    textSize = (subtitleSettings.textSize - 1f).coerceIn(10f, 60f)
+                                )
+                            )
+                        }
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "${subtitleSettings.textSize.toInt()} sp",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    SubtitleSizeButton(
+                        symbol = "+",
+                        enabled = subtitleSettings.textSize < 60f,
+                        onClick = {
+                            onSubtitleSettingsChanged(
+                                subtitleSettings.copy(
+                                    textSize = (subtitleSettings.textSize + 1f).coerceIn(10f, 60f)
+                                )
+                            )
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Subtitle text colour
                 Text(
                     text = androidx.compose.ui.res.stringResource(R.string.subtitle_text_color),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 6.dp)
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     listOf(
                         Color.Yellow, Color.White, Color.Black,
-                        Color.Red, Color.Blue, Color.Green
+                        Color.Red, Color.Blue, Color.Green, Color.Cyan
                     ).forEach { color ->
                         val argb = color.toArgb()
-                        val isSelected = subtitleSettings.textColor == argb
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(color)
-                                .clickable {
-                                    onSubtitleSettingsChanged(subtitleSettings.copy(textColor = argb))
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = if (color == Color.White || color == Color.Yellow) Color.Black else Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                        SubtitleColorSwatch(
+                            color = color,
+                            isSelected = subtitleSettings.textColor == argb,
+                            onClick = {
+                                onSubtitleSettingsChanged(subtitleSettings.copy(textColor = argb))
                             }
-                        }
+                        )
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Subtitle text size
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Subtitle background / outline colour
                 Text(
-                    text = androidx.compose.ui.res.stringResource(R.string.subtitle_text_size, subtitleSettings.textSize.toInt()),
+                    text = androidx.compose.ui.res.stringResource(R.string.subtitle_background_color),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-                Slider(
-                    value = subtitleSettings.textSize,
-                    onValueChange = { size ->
-                        onSubtitleSettingsChanged(subtitleSettings.copy(textSize = size))
-                    },
-                    valueRange = 10f..50f,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    val glass = Color.Black.copy(alpha = 0.5f)
+                    listOf(
+                        Color.Transparent, glass, Color.Black,
+                        Color.White, Color.Red, Color.Blue
+                    ).forEach { color ->
+                        val argb = color.toArgb()
+                        SubtitleColorSwatch(
+                            color = color,
+                            isSelected = subtitleSettings.borderColor == argb,
+                            onClick = {
+                                onSubtitleSettingsChanged(subtitleSettings.copy(borderColor = argb))
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Live preview so the chosen size/colours are visible instantly
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFF101010))
+                        .padding(vertical = 18.dp, horizontal = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = androidx.compose.ui.res.stringResource(R.string.subtitle_preview_text),
+                        color = Color(subtitleSettings.textColor),
+                        fontSize = subtitleSettings.textSize.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(subtitleSettings.borderColor))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
             }
         },
         confirmButton = {
@@ -1636,6 +1642,242 @@ fun TrackSelectionDialog(
             }
         }
     )
+
+    // ---------- Sub-popups ----------
+    if (showAudioPicker) {
+        val options = mutableListOf<PickerOption>()
+        options += PickerOption(
+            label = noneLabel,
+            isSelected = audioTrackGroups.none { it.isSelected },
+            onSelect = {
+                trackSelector?.setParameters(
+                    trackSelector.buildUponParameters()
+                        .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                )
+            }
+        )
+        audioTrackGroups.forEachIndexed { groupIndex, trackGroup ->
+            for (i in 0 until trackGroup.length) {
+                val format = trackGroup.getTrackFormat(i)
+                options += PickerOption(
+                    label = trackName(format, "Track ${groupIndex + 1}.${i + 1}"),
+                    isSelected = trackGroup.isTrackSelected(i),
+                    onSelect = {
+                        trackSelector?.setParameters(
+                            trackSelector.buildUponParameters()
+                                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+                                .setOverrideForType(
+                                    TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
+                                )
+                        )
+                    }
+                )
+            }
+        }
+        OptionPickerDialog(
+            title = androidx.compose.ui.res.stringResource(R.string.audio_tracks),
+            options = options,
+            onDismiss = { showAudioPicker = false }
+        )
+    }
+
+    if (showSubtitlePicker) {
+        val options = mutableListOf<PickerOption>()
+        options += PickerOption(
+            label = noneLabel,
+            isSelected = textTrackGroups.none { it.isSelected },
+            onSelect = {
+                trackSelector?.setParameters(
+                    trackSelector.buildUponParameters()
+                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                )
+            }
+        )
+        textTrackGroups.forEachIndexed { groupIndex, trackGroup ->
+            for (i in 0 until trackGroup.length) {
+                val format = trackGroup.getTrackFormat(i)
+                options += PickerOption(
+                    label = trackName(format, "Subtitle ${groupIndex + 1}.${i + 1}"),
+                    isSelected = trackGroup.isTrackSelected(i),
+                    onSelect = {
+                        trackSelector?.setParameters(
+                            trackSelector.buildUponParameters()
+                                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                                .setOverrideForType(
+                                    TrackSelectionOverride(trackGroup.mediaTrackGroup, i)
+                                )
+                        )
+                    }
+                )
+            }
+        }
+        OptionPickerDialog(
+            title = androidx.compose.ui.res.stringResource(R.string.subtitles),
+            options = options,
+            onDismiss = { showSubtitlePicker = false }
+        )
+    }
+
+    if (showSpeedPicker) {
+        OptionPickerDialog(
+            title = androidx.compose.ui.res.stringResource(R.string.playback_speed),
+            options = speedOptions.map { speed ->
+                PickerOption(
+                    label = String.format("%.2fx", speed),
+                    isSelected = speed == playbackSpeed,
+                    onSelect = { onPlaybackSpeedChanged(speed) }
+                )
+            },
+            onDismiss = { showSpeedPicker = false }
+        )
+    }
+}
+
+/**
+ * A "title / current value / chevron" row inside the player settings dialog.
+ * Tapping it (or pressing OK on a remote) opens the matching option popup.
+ */
+@Composable
+private fun PlayerSettingRow(
+    title: String,
+    value: String,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(
+                    width = if (isFocused) 2.dp else 0.dp,
+                    color = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick
+                )
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isFocused)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+/** Focusable +/- button for the in-player subtitle size stepper. */
+@Composable
+private fun SubtitleSizeButton(
+    symbol: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(androidx.compose.foundation.shape.CircleShape)
+            .background(
+                if (enabled)
+                    MaterialTheme.colorScheme.primary.copy(alpha = if (isFocused) 0.9f else 0.25f)
+                else
+                    MaterialTheme.colorScheme.surfaceVariant
+            )
+            .border(
+                width = if (isFocused) 2.dp else 0.dp,
+                color = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = androidx.compose.foundation.shape.CircleShape
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = symbol,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = when {
+                !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                isFocused -> MaterialTheme.colorScheme.onPrimary
+                else -> MaterialTheme.colorScheme.primary
+            }
+        )
+    }
+}
+
+/** Focusable colour swatch used by the in-player subtitle style section. */
+@Composable
+private fun SubtitleColorSwatch(
+    color: Color,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    Box(
+        modifier = Modifier
+            .size(34.dp)
+            .border(
+                width = if (isFocused) 2.dp else 0.dp,
+                color = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(6.dp)
+            )
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (color == Color.Transparent) Color.Gray.copy(alpha = 0.35f) else color)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = if (color == Color.White || color == Color.Yellow || color == Color.Transparent)
+                    Color.Black
+                else
+                    Color.White,
+                modifier = Modifier.size(16.dp)
+            )
+        } else if (color == Color.Transparent) {
+            Text(text = "—", color = Color.White.copy(alpha = 0.8f))
+        }
+    }
 }
 
 fun formatTime(milliseconds: Long): String {

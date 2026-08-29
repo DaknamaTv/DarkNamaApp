@@ -28,6 +28,12 @@
     <string name="tv_vpn_help_title">Playback Help</string>
     <string name="tv_vpn_help_message">If a channel does not play, please use a VPN and try again.</string>
     <string name="ok">OK</string>
+    <!-- Live TV favorites -->
+    <string name="tv_favorites">Favorites</string>
+    <string name="tv_add_favorite">Add to favorites</string>
+    <string name="tv_remove_favorite">Remove from favorites</string>
+    <string name="tv_no_favorites">No favorite channels yet</string>
+    <string name="tv_no_favorites_hint">Tap the star on any channel to add it here</string>
 
     <!-- Settings screen -->
     <string name="theme_settings">Theme Settings</string>
@@ -49,6 +55,21 @@
     <string name="select_font">Select Font</string>
     <string name="font_system_default">System Default</string>
     <string name="font_vazirmatn">Vazirmatn</string>
+    <string name="font_vazirmatn_desc">Recommended for Persian text</string>
+    <string name="font_preview">Preview</string>
+    <string name="font_preview_fa">دارک‌نما - تماشای فیلم و سریال</string>
+    <string name="font_preview_en">DarkNama — watch movies &amp; series</string>
+    <!-- Settings sub-pages -->
+    <string name="theme_use_default_color">Use default color</string>
+    <string name="theme_color_hint">The selected color is used for buttons, highlights and the app bar.</string>
+    <string name="player_seek_section">Seek</string>
+    <string name="player_settings_summary">Seek %1$ds · Subtitle %2$dsp</string>
+    <string name="subtitle_preview">Preview</string>
+    <string name="subtitle_preview_text">This is a sample subtitle</string>
+    <string name="subtitle_size_hint">The size applies to subtitles inside the video player.</string>
+    <string name="app_version">Version %1$s (build %2$d)</string>
+    <string name="current_version">Current version: %1$s</string>
+    <string name="checking_updates">Checking…</string>
     <string name="episodes_cache">Series Episodes Cache</string>
     <string name="cache_size">Cache size: %1$s</string>
     <string name="cache_empty">Empty</string>
