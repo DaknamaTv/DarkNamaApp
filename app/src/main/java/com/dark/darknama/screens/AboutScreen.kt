@@ -140,7 +140,7 @@ fun AboutScreen(navController: NavController?) {
                     // DarkNama Banner Image - opens website when clicked
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data("https://raw.githubusercontent.com/DaknamaTv/DarkNama/main/darknama.jpg")
+                            .data("https://raw.githubusercontent.com/DarknamaTv/DarkNama/main/darknama.jpg")
                             .crossfade(true)
                             .build(),
                         contentDescription = "DarkNama Website",
@@ -207,7 +207,7 @@ fun AboutScreen(navController: NavController?) {
                         icon = Icons.Default.Download,
                         trailingIcon = Icons.Default.Code,
                         text = "Download DarkNama",
-                        url = "https://github.com/DaknamaTv/DarkNamaApp/releases"
+                        url = "https://github.com/DarknamaTv/DarkNamaApp/releases"
                     )
                     
                     Spacer(modifier = Modifier.height(12.dp))
