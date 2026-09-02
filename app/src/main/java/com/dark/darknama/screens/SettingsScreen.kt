@@ -163,7 +163,7 @@ fun SettingsScreen(
         isCheckingUpdate = true
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("https://api.github.com/repos/DaknamaTv/DarkNamaApp/releases")
+                val url = URL("https://api.github.com/repos/DarknamaTv/DarkNamaApp/releases")
                 val connection = url.openConnection()
                 connection.setRequestProperty("User-Agent", "DarkNama-App")
                 val response = connection.getInputStream().bufferedReader().use { it.readText() }
